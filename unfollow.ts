@@ -1,95 +1,186 @@
-import { BskyAgent } from '@atproto/api';
-import * as fs from 'fs';
-import * as path from 'path';
+import { BskyAgent } from "@atproto/api";
+import { AppBskyGraphFollow } from "@atproto/api";
+import * as readline from "readline";
+import * as fs from "fs";
 
-const agent = new BskyAgent({
-  service: 'https://bsky.social',
+// Configuration
+const MAX_FOLLOWS = 30000; // Max follows to fetch
+const BATCH_SIZE = 50; // Number of follows to process in a batch (fetching is still done in batches)
+const BATCH_DELAY = 1000; // Delay between fetching batches in ms
+const UNFOLLOW_DELAY = 500; // Delay between unfollowing each account in ms
+const LOG_FILE = "unfollow-log.json";
+
+// Types
+interface FollowRecord {
+  did: string;
+  handle: string;
+  uri: string;
+}
+
+// Create CLI interface
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
 });
 
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+// Main function
+async function main() {
+  console.log("=== Bluesky Mass Unfollow Tool ===");
+  
+  // Login
+  const { agent, agentDID } = await login();
+  
+  // Get follows (limit to MAX_FOLLOWS)
+  console.log("\nFetching follows...");
+  const follows = await fetchFollows(agent, agentDID, MAX_FOLLOWS);
+  console.log(`Found ${follows.length} follows (max ${MAX_FOLLOWS})`);
+  
+  // Save fetched follows to file
+//   fs.writeFileSync(LOG_FILE, JSON.stringify(follows, null, 2));
+//   console.log(`Saved fetched follows to ${LOG_FILE}`);
+  
+  // Preview all accounts to unfollow
+  console.log("\nUnfollowing all accounts...");
+  
+  // Confirm unfollow
+  const confirm = await new Promise<string>(resolve => {
+    rl.question("Do you want to proceed with unfollowing all accounts? (yes/no): ", resolve);
+  });
+  
+  if (confirm.toLowerCase() !== "yes") {
+    console.log("Operation cancelled. Exiting.");
+    process.exit(0);
+  }
+  
+  // Unfollow all accounts one by one
+  await unfollowAccountsOneByOne(agent, agentDID, follows);
+  
+  console.log("\nUnfollow operation completed!");
+  rl.close();
+}
 
-async function login(username: string, password: string) {
+// Login function
+async function login(): Promise<{ agent: BskyAgent; agentDID: string }> {
+  const service = await new Promise<string>(resolve => {
+    rl.question("Enter service URL (default: https://bsky.social): ", answer => {
+      resolve(answer || "https://bsky.social");
+    });
+  });
+  
+  const identifier = await new Promise<string>(resolve => {
+    rl.question("Enter handle or DID: ", resolve);
+  });
+  
+  const password = await new Promise<string>(resolve => {
+    rl.question("Enter app password: ", resolve);
+  });
+  
+  console.log("Logging in...");
+  
+  // Create BskyAgent and login
+  const agent = new BskyAgent({ service });
+  
   try {
-    await agent.login({ identifier: username, password });
-    console.log(`Login successful for user: ${username}`);
+    // Try to login directly with handle
+    const response = await agent.login({ identifier, password });
+    const agentDID = response.data.did;
+    console.log(`Logged in as ${agentDID}`);
+    return { agent, agentDID };
   } catch (error) {
-    console.error(`Login failed for user: ${username}`, error);
+    console.error("Failed to login:", error);
     process.exit(1);
   }
 }
 
-async function getFollows(actor: string, limit: number = 50, cursor?: string) {
-  const url = "https://public.api.bsky.app/xrpc/app.bsky.graph.getFollows";
-  const params = new URLSearchParams({ actor, limit: limit.toString() });
-  if (cursor) {
-    params.append("cursor", cursor);
-  }
+// Fetch follows, limited to MAX_FOLLOWS
+async function fetchFollows(agent: BskyAgent, did: string, maxFollows: number): Promise<FollowRecord[]> {
+  const PAGE_LIMIT = 100;
+  let cursor: string | undefined = undefined;
+  let follows: FollowRecord[] = [];
+  let count = 0;
+  
   try {
-    const response = await fetch(`${url}?${params.toString()}`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch follows: ${response.status}`);
-    }
-    return await response.json();
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-    return { error: "An unknown error occurred" };
+    do {
+      const res = await agent.com.atproto.repo.listRecords({
+        repo: did,
+        collection: "app.bsky.graph.follow",
+        limit: PAGE_LIMIT,
+        cursor,
+      });
+      
+      const records = res.data.records;
+      const newFollows = records.map((record: any) => {
+        const follow = record.value as AppBskyGraphFollow.Record;
+        return {
+          did: follow.subject,
+          handle: "", // Will be populated later
+          uri: record.uri,
+        };
+      });
+      
+      follows = [...follows, ...newFollows];
+      cursor = res.data.cursor;
+      count += records.length;
+
+      if (count >= maxFollows) {
+        follows = follows.slice(0, maxFollows); // Limit the result to maxFollows
+        break;
+      }
+      
+      console.log(`Fetched ${count} follows...`);
+    } while (cursor && count < maxFollows);
+    
+    return follows;
+  } catch (error) {
+    console.error("Failed to fetch follows:", error);
+    return follows; // Return what we have so far
   }
 }
 
-async function getFollowUri(did: string) {
-  const url = `https://bsky.social/xrpc/com.atproto.repo.listRecords?repo=${did}&collection=app.bsky.graph.follow&limit=100`;
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch follow URI: ${response.status}`);
-    }
-    const data = await response.json();
-    return data.records?.[0]?.uri || null;  // Get follow record URI
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-    return { error: "An unknown error occurred" };
-  }
-}
-
-async function unfollowUser(actorHandle: string) {
-  try {
-    const followsData = await getFollows(actorHandle);
-    if (followsData.error) {
-      throw new Error(followsData.error);
+// Unfollow accounts one by one
+async function unfollowAccountsOneByOne(agent: BskyAgent, did: string, toUnfollow: FollowRecord[]): Promise<void> {
+  const total = toUnfollow.length;
+  let unfollowed = 0;
+  
+  for (let i = 0; i < total; i++) {
+    const follow = toUnfollow[i];
+    
+    // Extract rkey from URI (the last part after the slash)
+    const parts = follow.uri.split('/');
+    const rkey = parts[parts.length - 1];
+    
+    try {
+      await agent.com.atproto.repo.applyWrites({
+        repo: did,
+        writes: [
+          {
+            $type: "com.atproto.repo.applyWrites#delete",
+            collection: "app.bsky.graph.follow",
+            rkey: rkey,
+          }
+        ],
+      });
+      
+      unfollowed++;
+      console.log(`Unfollowed ${unfollowed}/${total} accounts...`);
+    } catch (error) {
+      console.error(`Failed to unfollow account at index ${i}:`, error);
     }
     
-    for (const follow of followsData.follows) {
-      console.log(`Processing unfollow for: ${follow.handle}`);
-      await delay(1000);  // Respect rate limits
-      console.log(follow.did)
-      
-      const followUri = await getFollowUri(follow.did);
-      console.log(followUri)
-      if (followUri) {
-        await agent.deleteFollow(followUri);
-        console.log(`Unfollowed: ${follow.handle}`);
-      } else {
-        console.log(`No follow record found for: ${follow.handle}`);
-      }
+    // Respect delay between unfollows
+    if (i + 1 < total) {
+      await delay(UNFOLLOW_DELAY);
     }
-  } catch (error) {
-    console.error("Error in unfollow process:", error);
   }
 }
 
-// ✅ Login before unfollowing
-async function main() {
-  const BLUESKY_USERNAME = "hlrecipes.bsky.social";
-  const BLUESKY_PASSWORD = "AMINOS2000";
-
-  await login(BLUESKY_USERNAME, BLUESKY_PASSWORD);
-
-  const actorHandle = "hlrecipes.bsky.social";  // Changed to your account
-  await unfollowUser(actorHandle);
+// Helper function for delays
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-main();
+// Start the script
+main().catch(error => {
+  console.error("Unhandled error:", error);
+  process.exit(1);
+});
