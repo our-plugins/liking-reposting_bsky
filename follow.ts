@@ -4,7 +4,7 @@ import * as readline from "readline";
 import * as fs from "fs";
 
 // Configuration
-const MAX_FOLLOWS = 1000; // Max users to follow
+const MAX_FOLLOWS = 10000; // Max users to follow
 const BATCH_SIZE = 50; // Number of users to process in a batch
 const BATCH_DELAY = 1000; // Delay between fetching batches in ms
 const FOLLOW_DELAY = 1000; // Delay between following each account in ms
