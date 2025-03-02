@@ -47,7 +47,6 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var api_1 = require("@atproto/api");
 var readline = require("readline");
-var fs = require("fs");
 // Configuration
 var MAX_FOLLOWS = 10000; // Max users to follow
 var BATCH_SIZE = 50; // Number of users to process in a batch
@@ -110,8 +109,8 @@ function main() {
                     notFollowingYet = usersToFollow.filter(function (user) { return !user.alreadyFollowing; });
                     console.log("".concat(notFollowingYet.length, " accounts not following yet"));
                     // Save fetched users to file
-                    fs.writeFileSync(LOG_FILE, JSON.stringify(notFollowingYet, null, 2));
-                    console.log("Saved accounts to follow to ".concat(LOG_FILE));
+                    // fs.writeFileSync(LOG_FILE, JSON.stringify(notFollowingYet, null, 2));
+                    // console.log(`Saved accounts to follow to ${LOG_FILE}`);
                     // Preview accounts to follow
                     console.log("\nAccounts to follow:");
                     notFollowingYet.slice(0, 10).forEach(function (user, i) {

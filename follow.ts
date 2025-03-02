@@ -69,8 +69,8 @@ async function main() {
   console.log(`${notFollowingYet.length} accounts not following yet`);
   
   // Save fetched users to file
-  fs.writeFileSync(LOG_FILE, JSON.stringify(notFollowingYet, null, 2));
-  console.log(`Saved accounts to follow to ${LOG_FILE}`);
+  // fs.writeFileSync(LOG_FILE, JSON.stringify(notFollowingYet, null, 2));
+  // console.log(`Saved accounts to follow to ${LOG_FILE}`);
   
   // Preview accounts to follow
   console.log("\nAccounts to follow:");
