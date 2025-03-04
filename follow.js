@@ -48,11 +48,26 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var api_1 = require("@atproto/api");
 var readline = require("readline");
 // Configuration
-var MAX_FOLLOWS = 10000; // Max users to follow
-var BATCH_SIZE = 50; // Number of users to process in a batch
-var BATCH_DELAY = 1000; // Delay between fetching batches in ms
-var FOLLOW_DELAY = 1000; // Delay between following each account in ms
+var MAX_FOLLOWS = 20000; // Max users to follow
+var BATCH_SIZE = 20; // Smaller batch size to better handle rate limits
+var BATCH_DELAY = 2000; // Increased delay between batches
+var FOLLOW_DELAY = 1000; // Increased delay between follows
 var LOG_FILE = "follow-log.json";
+// Rate limit configuration (Bluesky allows 5000 points per hour)
+// Following is a CREATE action worth 3 points
+var POINTS_PER_FOLLOW = 3;
+var MAX_POINTS_PER_HOUR = 5000;
+var MAX_POINTS_PER_DAY = 35000;
+var HOUR_IN_MS = 60 * 60 * 1000;
+var DAY_IN_MS = 24 * HOUR_IN_MS;
+// Initialize rate limit tracker
+var rateLimits = {
+    hourlyPoints: 0,
+    dailyPoints: 0,
+    hourlyResetTime: Date.now() + HOUR_IN_MS,
+    dailyResetTime: Date.now() + DAY_IN_MS,
+    lastActionTime: 0
+};
 // Create CLI interface
 var rl = readline.createInterface({
     input: process.stdin,
@@ -61,7 +76,7 @@ var rl = readline.createInterface({
 // Main function
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var _a, agent, agentDID, mode, usersToFollow, targetAccount, targetDID, postURI, notFollowingYet, confirm;
+        var _a, agent, agentDID, mode, usersToFollow, targetAccount, targetDID, postURI, notFollowingYet, maxFollowsPerHour, maxFollowsPerDay, saveToFile, confirm, strategy, isConservative;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -108,9 +123,18 @@ function main() {
                 case 9:
                     notFollowingYet = usersToFollow.filter(function (user) { return !user.alreadyFollowing; });
                     console.log("".concat(notFollowingYet.length, " accounts not following yet"));
-                    // Save fetched users to file
-                    // fs.writeFileSync(LOG_FILE, JSON.stringify(notFollowingYet, null, 2));
-                    // console.log(`Saved accounts to follow to ${LOG_FILE}`);
+                    maxFollowsPerHour = Math.floor(MAX_POINTS_PER_HOUR / POINTS_PER_FOLLOW);
+                    maxFollowsPerDay = Math.floor(MAX_POINTS_PER_DAY / POINTS_PER_FOLLOW);
+                    console.log("Based on rate limits, you can follow up to ".concat(maxFollowsPerHour, " accounts per hour or ").concat(maxFollowsPerDay, " per day"));
+                    return [4 /*yield*/, new Promise(function (resolve) {
+                            rl.question("Do you want to save the list of accounts to follow to a file? (yes/no): ", resolve);
+                        })];
+                case 10:
+                    saveToFile = _b.sent();
+                    // if (saveToFile.toLowerCase() === "yes") {
+                    //   fs.writeFileSync(LOG_FILE, JSON.stringify(notFollowingYet, null, 2));
+                    //   console.log(`Saved accounts to follow to ${LOG_FILE}`);
+                    // }
                     // Preview accounts to follow
                     console.log("\nAccounts to follow:");
                     notFollowingYet.slice(0, 10).forEach(function (user, i) {
@@ -122,16 +146,25 @@ function main() {
                     return [4 /*yield*/, new Promise(function (resolve) {
                             rl.question("Do you want to proceed with following ".concat(notFollowingYet.length, " accounts? (yes/no): "), resolve);
                         })];
-                case 10:
+                case 11:
                     confirm = _b.sent();
                     if (confirm.toLowerCase() !== "yes") {
                         console.log("Operation cancelled. Exiting.");
                         process.exit(0);
                     }
-                    // Follow accounts
-                    return [4 /*yield*/, followAccountsBatch(agent, notFollowingYet)];
-                case 11:
-                    // Follow accounts
+                    return [4 /*yield*/, new Promise(function (resolve) {
+                            rl.question("Choose rate limit strategy: (1) Conservative (slower but safer) or (2) Standard: ", resolve);
+                        })];
+                case 12:
+                    strategy = _b.sent();
+                    isConservative = strategy === "1";
+                    if (isConservative) {
+                        console.log("Using conservative rate limit strategy - this will be slower but more reliable");
+                    }
+                    // Follow accounts with rate limit handling
+                    return [4 /*yield*/, followAccountsWithRateLimits(agent, notFollowingYet, isConservative)];
+                case 13:
+                    // Follow accounts with rate limit handling
                     _b.sent();
                     console.log("\nFollow operation completed!");
                     rl.close();
@@ -362,61 +395,203 @@ function fetchLikers(agent, postURI, maxLikes) {
         });
     });
 }
-// Follow accounts in batches
-function followAccountsBatch(agent, toFollow) {
+// Check and update rate limits, returns the delay needed before next action
+function updateRateLimits(isConservative) {
+    var now = Date.now();
+    // Check if hourly reset is due
+    if (now > rateLimits.hourlyResetTime) {
+        rateLimits.hourlyPoints = 0;
+        rateLimits.hourlyResetTime = now + HOUR_IN_MS;
+        console.log("Hourly rate limit reset");
+    }
+    // Check if daily reset is due
+    if (now > rateLimits.dailyResetTime) {
+        rateLimits.dailyPoints = 0;
+        rateLimits.dailyResetTime = now + DAY_IN_MS;
+        console.log("Daily rate limit reset");
+    }
+    // Calculate safe thresholds (80% of limits for conservative, 90% for standard)
+    var hourlyThreshold = isConservative ? MAX_POINTS_PER_HOUR * 0.8 : MAX_POINTS_PER_HOUR * 0.9;
+    var dailyThreshold = isConservative ? MAX_POINTS_PER_DAY * 0.8 : MAX_POINTS_PER_DAY * 0.9;
+    // Check if we're approaching limits
+    if (rateLimits.hourlyPoints >= hourlyThreshold) {
+        var timeToHourlyReset = rateLimits.hourlyResetTime - now;
+        console.log("Approaching hourly rate limit. Waiting until reset in ".concat(Math.ceil(timeToHourlyReset / 60000), " minutes."));
+        return timeToHourlyReset;
+    }
+    if (rateLimits.dailyPoints >= dailyThreshold) {
+        var timeToDailyReset = rateLimits.dailyResetTime - now;
+        console.log("Approaching daily rate limit. Waiting until reset in ".concat(Math.ceil(timeToDailyReset / 3600000), " hours."));
+        return timeToDailyReset;
+    }
+    // Calculate minimum time between actions based on rate limits
+    // For conservative approach, we'll spread out our actions more
+    var minDelay = FOLLOW_DELAY;
+    if (isConservative) {
+        // Calculate how many actions we can do per hour to stay under limit
+        var actionsPerHour = Math.floor(hourlyThreshold / POINTS_PER_FOLLOW);
+        var safeDelayBetweenActions = Math.ceil(HOUR_IN_MS / actionsPerHour);
+        minDelay = Math.max(minDelay, safeDelayBetweenActions);
+    }
+    var timeSinceLastAction = now - rateLimits.lastActionTime;
+    return Math.max(0, minDelay - timeSinceLastAction);
+}
+// Process rate limit headers from response
+function processRateLimitHeaders(headers) {
+    if (headers && headers['ratelimit-limit'] && headers['ratelimit-remaining'] && headers['ratelimit-reset']) {
+        var limit = parseInt(headers['ratelimit-limit']);
+        var remaining = parseInt(headers['ratelimit-remaining']);
+        var resetTime = parseInt(headers['ratelimit-reset']) * 1000; // Convert to milliseconds
+        console.log("Rate limit status: ".concat(remaining, "/").concat(limit, " remaining, resets at ").concat(new Date(resetTime).toLocaleTimeString()));
+        // If we're close to the limit, we might want to pause
+        if (remaining < limit * 0.1) {
+            console.log("WARNING: Only ".concat(remaining, " requests remaining until rate limit reset!"));
+        }
+    }
+}
+// Follow accounts with rate limit handling
+function followAccountsWithRateLimits(agent, toFollow, isConservative) {
     return __awaiter(this, void 0, void 0, function () {
-        var total, followed, i, batch, _i, batch_1, user, error_5;
+        var total, followed, failures, consecutiveFailures, MAX_CONSECUTIVE_FAILURES, maxFollowsPerHour, estimatedHours, i, user, waitTime, beforeFollow, response, afterFollow, typedResponse, progress, remainingUsers, avgTimePerUser, estimatedTimeRemaining, jitter, error_5, resetTime, waitTime_1, backoffTime, backoffTime;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     total = toFollow.length;
                     followed = 0;
+                    failures = 0;
+                    consecutiveFailures = 0;
+                    MAX_CONSECUTIVE_FAILURES = 5;
+                    maxFollowsPerHour = Math.floor(MAX_POINTS_PER_HOUR / POINTS_PER_FOLLOW);
+                    estimatedHours = Math.ceil(total / maxFollowsPerHour);
+                    console.log("Estimated time to follow all accounts: ~".concat(estimatedHours, " hour(s)"));
                     i = 0;
                     _a.label = 1;
                 case 1:
-                    if (!(i < total)) return [3 /*break*/, 12];
-                    batch = toFollow.slice(i, i + BATCH_SIZE);
-                    _i = 0, batch_1 = batch;
-                    _a.label = 2;
+                    if (!(i < total)) return [3 /*break*/, 20];
+                    user = toFollow[i];
+                    waitTime = updateRateLimits(isConservative);
+                    if (!(waitTime > 0)) return [3 /*break*/, 3];
+                    console.log("Rate limit protection: waiting for ".concat(Math.ceil(waitTime / 1000), " seconds..."));
+                    return [4 /*yield*/, delay(waitTime)];
                 case 2:
-                    if (!(_i < batch_1.length)) return [3 /*break*/, 9];
-                    user = batch_1[_i];
+                    _a.sent();
                     _a.label = 3;
                 case 3:
-                    _a.trys.push([3, 5, , 6]);
+                    _a.trys.push([3, 6, , 18]);
+                    beforeFollow = Date.now();
                     return [4 /*yield*/, agent.follow(user.did)];
                 case 4:
-                    _a.sent();
+                    response = _a.sent();
+                    afterFollow = Date.now();
+                    typedResponse = response;
+                    if (typedResponse.headers) {
+                        processRateLimitHeaders(typedResponse.headers);
+                    }
+                    // Update rate limit counters
+                    rateLimits.hourlyPoints += POINTS_PER_FOLLOW;
+                    rateLimits.dailyPoints += POINTS_PER_FOLLOW;
+                    rateLimits.lastActionTime = afterFollow;
                     followed++;
-                    console.log("Followed ".concat(user.handle, " (").concat(followed, "/").concat(total, ")"));
-                    return [3 /*break*/, 6];
+                    consecutiveFailures = 0;
+                    progress = (followed / total) * 100;
+                    remainingUsers = total - followed;
+                    avgTimePerUser = (afterFollow - beforeFollow) + FOLLOW_DELAY;
+                    estimatedTimeRemaining = remainingUsers * avgTimePerUser;
+                    console.log("Followed ".concat(user.handle, " (").concat(followed, "/").concat(total, ", ").concat(progress.toFixed(1), "%)"));
+                    if (remainingUsers > 0) {
+                        console.log("Estimated time remaining: ~".concat(formatTime(estimatedTimeRemaining)));
+                    }
+                    jitter = Math.random() * 1000;
+                    return [4 /*yield*/, delay(FOLLOW_DELAY + jitter)];
                 case 5:
-                    error_5 = _a.sent();
-                    console.error("Failed to follow ".concat(user.handle, ":"), error_5);
-                    return [3 /*break*/, 6];
+                    _a.sent();
+                    return [3 /*break*/, 18];
                 case 6:
-                    if (!(followed < total)) return [3 /*break*/, 8];
-                    return [4 /*yield*/, delay(FOLLOW_DELAY)];
+                    error_5 = _a.sent();
+                    failures++;
+                    consecutiveFailures++;
+                    if (!(error_5.error === 'RateLimitExceeded')) return [3 /*break*/, 15];
+                    console.error("Rate limit exceeded when trying to follow ".concat(user.handle));
+                    if (!error_5.headers) return [3 /*break*/, 12];
+                    processRateLimitHeaders(error_5.headers);
+                    if (!error_5.headers['ratelimit-reset']) return [3 /*break*/, 9];
+                    resetTime = parseInt(error_5.headers['ratelimit-reset']) * 1000;
+                    waitTime_1 = resetTime - Date.now() + 5000;
+                    if (!(waitTime_1 > 0)) return [3 /*break*/, 8];
+                    console.log("Rate limit exceeded. Waiting until reset: ".concat(formatTime(waitTime_1)));
+                    return [4 /*yield*/, delay(waitTime_1)];
                 case 7:
                     _a.sent();
                     _a.label = 8;
-                case 8:
-                    _i++;
-                    return [3 /*break*/, 2];
+                case 8: return [3 /*break*/, 11];
                 case 9:
-                    console.log("Completed batch ".concat(Math.floor(i / BATCH_SIZE) + 1, "/").concat(Math.ceil(total / BATCH_SIZE)));
-                    if (!(i + BATCH_SIZE < total)) return [3 /*break*/, 11];
-                    return [4 /*yield*/, delay(BATCH_DELAY)];
+                    backoffTime = Math.min(60000 * Math.pow(2, consecutiveFailures), 3600000);
+                    console.log("Rate limit exceeded. Backing off for: ".concat(formatTime(backoffTime)));
+                    return [4 /*yield*/, delay(backoffTime)];
                 case 10:
                     _a.sent();
                     _a.label = 11;
-                case 11:
-                    i += BATCH_SIZE;
+                case 11: return [3 /*break*/, 14];
+                case 12:
+                    backoffTime = 300000;
+                    console.log("Rate limit exceeded. Backing off for 5 minutes.");
+                    return [4 /*yield*/, delay(backoffTime)];
+                case 13:
+                    _a.sent();
+                    _a.label = 14;
+                case 14:
+                    // Retry this user
+                    i--;
+                    return [3 /*break*/, 17];
+                case 15:
+                    console.error("Failed to follow ".concat(user.handle, ":"), error_5);
+                    if (!(consecutiveFailures >= MAX_CONSECUTIVE_FAILURES)) return [3 /*break*/, 17];
+                    console.log("".concat(MAX_CONSECUTIVE_FAILURES, " consecutive failures detected. Taking a break for 10 minutes."));
+                    return [4 /*yield*/, delay(600000)];
+                case 16:
+                    _a.sent(); // 10 minutes
+                    consecutiveFailures = 0;
+                    _a.label = 17;
+                case 17: return [3 /*break*/, 18];
+                case 18:
+                    // Print a summary every 10 follows
+                    if (followed % 10 === 0 && followed > 0) {
+                        console.log("\nProgress Update:");
+                        console.log("- Followed: ".concat(followed, "/").concat(total, " (").concat(((followed / total) * 100).toFixed(1), "%)"));
+                        console.log("- Failed: ".concat(failures));
+                        console.log("- Hourly points used: ".concat(rateLimits.hourlyPoints, "/").concat(MAX_POINTS_PER_HOUR));
+                        console.log("- Daily points used: ".concat(rateLimits.dailyPoints, "/").concat(MAX_POINTS_PER_DAY));
+                        console.log("- Hourly reset: ".concat(new Date(rateLimits.hourlyResetTime).toLocaleTimeString()));
+                        console.log();
+                    }
+                    _a.label = 19;
+                case 19:
+                    i++;
                     return [3 /*break*/, 1];
-                case 12: return [2 /*return*/];
+                case 20:
+                    // Final summary
+                    console.log("\nFollow Operation Complete:");
+                    console.log("- Successfully followed: ".concat(followed, "/").concat(total, " accounts"));
+                    console.log("- Failed attempts: ".concat(failures));
+                    return [2 /*return*/];
             }
         });
     });
+}
+// Helper function to format time in human-readable format
+function formatTime(ms) {
+    var seconds = Math.floor(ms / 1000) % 60;
+    var minutes = Math.floor(ms / (1000 * 60)) % 60;
+    var hours = Math.floor(ms / (1000 * 60 * 60));
+    if (hours > 0) {
+        return "".concat(hours, "h ").concat(minutes, "m");
+    }
+    else if (minutes > 0) {
+        return "".concat(minutes, "m ").concat(seconds, "s");
+    }
+    else {
+        return "".concat(seconds, "s");
+    }
 }
 // Helper function for delays
 function delay(ms) {
