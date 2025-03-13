@@ -48,7 +48,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var api_1 = require("@atproto/api");
 var readline = require("readline");
 // Configuration
-var MAX_FOLLOWS = 30000; // Max follows to fetch
+var MAX_FOLLOWS = 15000; // Max follows to fetch
 var BATCH_SIZE = 50; // Number of follows to process in a batch (fetching is still done in batches)
 var BATCH_DELAY = 1000; // Delay between fetching batches in ms
 var UNFOLLOW_DELAY = 500; // Delay between unfollowing each account in ms

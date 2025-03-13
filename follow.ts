@@ -4,7 +4,7 @@ import * as readline from "readline";
 import * as fs from "fs";
 
 // Configuration
-const MAX_FOLLOWS = 20000; // Max users to follow
+const MAX_FOLLOWS = 4000; // Max users to follow
 const BATCH_SIZE = 20; // Smaller batch size to better handle rate limits
 const BATCH_DELAY = 2000; // Increased delay between batches
 const FOLLOW_DELAY = 1000; // Increased delay between follows

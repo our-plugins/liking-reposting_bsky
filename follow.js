@@ -48,7 +48,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var api_1 = require("@atproto/api");
 var readline = require("readline");
 // Configuration
-var MAX_FOLLOWS = 20000; // Max users to follow
+var MAX_FOLLOWS = 4000; // Max users to follow
 var BATCH_SIZE = 20; // Smaller batch size to better handle rate limits
 var BATCH_DELAY = 2000; // Increased delay between batches
 var FOLLOW_DELAY = 1000; // Increased delay between follows
