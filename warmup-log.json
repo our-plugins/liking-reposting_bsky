@@ -1,0 +1,82 @@
+{
+  "timestamp": "2025-04-03T18:32:33.084Z",
+  "totalUsersFollowed": 30,
+  "totalAttempted": 30,
+  "accountStatuses": [
+    {
+      "username": "healtyrecipes.bsky.social",
+      "did": "did:plc:wj3qntqdzlroiwqci7mwtxik",
+      "followsCompleted": 10,
+      "followsAttempted": 10,
+      "rateLimits": {
+        "hourlyPoints": 30,
+        "dailyPoints": 30,
+        "hourlyResetTime": 1743708646753,
+        "dailyResetTime": 1743791446753,
+        "lastActionTime": 1743705077929
+      },
+      "followedUsers": [
+        "did:plc:7nxfekpuqpqv7djlimwz52eh",
+        "did:plc:rfz6rg4b66n7hfpnt7ebuh2j",
+        "did:plc:dfeb5xhgwli2tx3dqokpm55v",
+        "did:plc:lka7e5jgyoeordirtt3ry35t",
+        "did:plc:b4ijinyh6kpb3coyvszkyli4",
+        "did:plc:p4lxnsseslujna2didwbpbih",
+        "did:plc:yfcvpl67cvulhdjmz6b2cosf",
+        "did:plc:bbu6ttzws53slo2ikjyeppwl",
+        "did:plc:fkybcddiy4b66u7gsidaxwfb",
+        "did:plc:uizvfqkbi2vnpa7skxood3fr"
+      ]
+    },
+    {
+      "username": "grandmarecipes.bsky.social",
+      "did": "did:plc:lkz73efkpt6r2iu3xtsquei6",
+      "followsCompleted": 10,
+      "followsAttempted": 10,
+      "rateLimits": {
+        "hourlyPoints": 30,
+        "dailyPoints": 30,
+        "hourlyResetTime": 1743708688924,
+        "dailyResetTime": 1743791488924,
+        "lastActionTime": 1743705114067
+      },
+      "followedUsers": [
+        "did:plc:rvhnihexr53hsr44vdyo6val",
+        "did:plc:jrjjn6ca4rjx6ueco7nz7nhu",
+        "did:plc:2cq4qttwljbpxcp64yilv5ph",
+        "did:plc:3suyxxyfqmdolrsobfr3mvvm",
+        "did:plc:ucssjmpwsrebjzu3bjl7uz46",
+        "did:plc:dceftbnk3hlkbcqdgv65cu4y",
+        "did:plc:oadwxaeqi5iwsj2ma2r7ttzr",
+        "did:plc:352nsm3q4hvf5u3syjkpioef",
+        "did:plc:w4sginngfuqyccpw3stkthmf",
+        "did:plc:zvpxxo2x6xtq3dysrviyswxh"
+      ]
+    },
+    {
+      "username": "yummyrecipes.bsky.social",
+      "did": "did:plc:445honkq4xw653a3acqiyn3n",
+      "followsCompleted": 10,
+      "followsAttempted": 10,
+      "rateLimits": {
+        "hourlyPoints": 30,
+        "dailyPoints": 30,
+        "hourlyResetTime": 1743708723074,
+        "dailyResetTime": 1743791523074,
+        "lastActionTime": 1743705151159
+      },
+      "followedUsers": [
+        "did:plc:7yo5sustbnfoqtvt4u5bscj5",
+        "did:plc:yu4qqvf2tiwcim2aygnbboph",
+        "did:plc:kbdcjh3sb4kadnxq5ii74heh",
+        "did:plc:y3u5r4cd3hbscfyf4uiz7sl5",
+        "did:plc:wt33szt7hn5ddx2xmxlq6hkc",
+        "did:plc:gl33ani6nbrbyaonrxcoeuq4",
+        "did:plc:mx4vy34rtxogv6gfqccf2hgu",
+        "did:plc:bfecqsjyezlffd7c5mk22pd4",
+        "did:plc:tjjq2asalce5rtxdwlsqg2vn",
+        "did:plc:kdd3hbhes2ga7rrn3zworo3t"
+      ]
+    }
+  ]
+}

@@ -46,28 +46,22 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var api_1 = require("@atproto/api");
+var fs = require("fs");
 var readline = require("readline");
 // Configuration
-var MAX_FOLLOWS = 5000; // Max users to follow
-var BATCH_SIZE = 20; // Smaller batch size to better handle rate limits
-var BATCH_DELAY = 2000; // Increased delay between batches
-var FOLLOW_DELAY = 1000; // Increased delay between follows
-var LOG_FILE = "follow-log.json";
-// Rate limit configuration (Bluesky allows 5000 points per hour)
-// Following is a CREATE action worth 3 points
+var ACCOUNTS_FILE = "accounts.json";
+var MAX_FOLLOWS_PER_ACCOUNT = 10; // Each account follows this many users
+var BATCH_SIZE = 10; // Process users in batches
+var BATCH_DELAY = 3000; // Delay between batches (ms)
+var FOLLOW_DELAY = 1500; // Delay between follows (ms)
+var ACCOUNT_SWITCH_DELAY = 5000; // Delay when switching accounts (ms)
+var LOG_FILE = "warmup-log.json";
+// Rate limit configuration
 var POINTS_PER_FOLLOW = 3;
 var MAX_POINTS_PER_HOUR = 5000;
 var MAX_POINTS_PER_DAY = 35000;
 var HOUR_IN_MS = 60 * 60 * 1000;
 var DAY_IN_MS = 24 * HOUR_IN_MS;
-// Initialize rate limit tracker
-var rateLimits = {
-    hourlyPoints: 0,
-    dailyPoints: 0,
-    hourlyResetTime: Date.now() + HOUR_IN_MS,
-    dailyResetTime: Date.now() + DAY_IN_MS,
-    lastActionTime: 0
-};
 // Create CLI interface
 var rl = readline.createInterface({
     input: process.stdin,
@@ -76,146 +70,209 @@ var rl = readline.createInterface({
 // Main function
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var _a, agent, agentDID, mode, usersToFollow, targetAccount, targetDID, postURI, notFollowingYet, maxFollowsPerHour, maxFollowsPerDay, saveToFile, confirm, strategy, isConservative;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        var accounts, mode, usersToFollow, totalFollowLimit, targetAccount, agent, targetDID, postURI, agent, notFollowingYet, followsPerAccount, accountDistribution, confirm, accountStatuses, strategy, isConservative, i, agent, loginResponse, accountDID, accountStatus, usersToFollowForThisAccount, error_1, operationLog;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
                 case 0:
-                    console.log("=== Bluesky Mass Follow Tool ===");
-                    return [4 /*yield*/, login()];
-                case 1:
-                    _a = _b.sent(), agent = _a.agent, agentDID = _a.agentDID;
+                    console.log("=== Bluesky Multi-Account Follower ===");
+                    accounts = loadAccounts();
+                    console.log("Loaded ".concat(accounts.length, " accounts from ").concat(ACCOUNTS_FILE));
                     return [4 /*yield*/, chooseMode()];
-                case 2:
-                    mode = _b.sent();
+                case 1:
+                    mode = _a.sent();
                     usersToFollow = [];
+                    totalFollowLimit = accounts.length * MAX_FOLLOWS_PER_ACCOUNT;
                     if (!(mode === "followers")) return [3 /*break*/, 6];
                     return [4 /*yield*/, new Promise(function (resolve) {
                             rl.question("Enter the DID or handle of the account whose followers you want to follow: ", resolve);
                         })];
+                case 2:
+                    targetAccount = _a.sent();
+                    // Load first account just to resolve DID
+                    console.log("Logging in to first account to fetch data...");
+                    agent = new api_1.BskyAgent({ service: "https://bsky.social" });
+                    return [4 /*yield*/, agent.login({
+                            identifier: accounts[0].BLUESKY_USERNAME,
+                            password: accounts[0].BLUESKY_PASSWORD,
+                        })];
                 case 3:
-                    targetAccount = _b.sent();
+                    _a.sent();
                     return [4 /*yield*/, resolveDID(agent, targetAccount)];
                 case 4:
-                    targetDID = _b.sent();
+                    targetDID = _a.sent();
                     if (!targetDID) {
                         console.log("Failed to resolve account. Exiting.");
                         process.exit(1);
                     }
                     // Fetch followers
                     console.log("\nFetching followers of ".concat(targetDID, "..."));
-                    return [4 /*yield*/, fetchFollowers(agent, targetDID, MAX_FOLLOWS)];
+                    return [4 /*yield*/, fetchFollowers(agent, targetDID, totalFollowLimit)];
                 case 5:
-                    usersToFollow = _b.sent();
-                    console.log("Found ".concat(usersToFollow.length, " followers (max ").concat(MAX_FOLLOWS, ")"));
-                    return [3 /*break*/, 9];
+                    usersToFollow = _a.sent();
+                    console.log("Found ".concat(usersToFollow.length, " followers (max ").concat(totalFollowLimit, ")"));
+                    return [3 /*break*/, 10];
                 case 6: return [4 /*yield*/, new Promise(function (resolve) {
                         rl.question("Enter the URI or AT-URI of the post whose likers you want to follow: ", resolve);
                     })];
                 case 7:
-                    postURI = _b.sent();
+                    postURI = _a.sent();
+                    // Load first account just to fetch data
+                    console.log("Logging in to first account to fetch data...");
+                    agent = new api_1.BskyAgent({ service: "https://bsky.social" });
+                    return [4 /*yield*/, agent.login({
+                            identifier: accounts[0].BLUESKY_USERNAME,
+                            password: accounts[0].BLUESKY_PASSWORD,
+                        })];
+                case 8:
+                    _a.sent();
                     // Fetch likers
                     console.log("\nFetching likers of post...");
-                    return [4 /*yield*/, fetchLikers(agent, postURI, MAX_FOLLOWS)];
-                case 8:
-                    usersToFollow = _b.sent();
-                    console.log("Found ".concat(usersToFollow.length, " likers (max ").concat(MAX_FOLLOWS, ")"));
-                    _b.label = 9;
+                    return [4 /*yield*/, fetchLikers(agent, postURI, totalFollowLimit)];
                 case 9:
+                    usersToFollow = _a.sent();
+                    console.log("Found ".concat(usersToFollow.length, " likers (max ").concat(totalFollowLimit, ")"));
+                    _a.label = 10;
+                case 10:
                     notFollowingYet = usersToFollow.filter(function (user) { return !user.alreadyFollowing; });
                     console.log("".concat(notFollowingYet.length, " accounts not following yet"));
-                    maxFollowsPerHour = Math.floor(MAX_POINTS_PER_HOUR / POINTS_PER_FOLLOW);
-                    maxFollowsPerDay = Math.floor(MAX_POINTS_PER_DAY / POINTS_PER_FOLLOW);
-                    console.log("Based on rate limits, you can follow up to ".concat(maxFollowsPerHour, " accounts per hour or ").concat(maxFollowsPerDay, " per day"));
-                    return [4 /*yield*/, new Promise(function (resolve) {
-                            rl.question("Do you want to save the list of accounts to follow to a file? (yes/no): ", resolve);
-                        })];
-                case 10:
-                    saveToFile = _b.sent();
-                    // if (saveToFile.toLowerCase() === "yes") {
-                    //   fs.writeFileSync(LOG_FILE, JSON.stringify(notFollowingYet, null, 2));
-                    //   console.log(`Saved accounts to follow to ${LOG_FILE}`);
-                    // }
                     // Preview accounts to follow
-                    console.log("\nAccounts to follow:");
+                    console.log("\nAccounts to follow (sample):");
                     notFollowingYet.slice(0, 10).forEach(function (user, i) {
                         console.log("".concat(i + 1, ". ").concat(user.handle, " (").concat(user.did, ")"));
                     });
                     if (notFollowingYet.length > 10) {
                         console.log("... and ".concat(notFollowingYet.length - 10, " more"));
                     }
+                    followsPerAccount = Math.min(MAX_FOLLOWS_PER_ACCOUNT, Math.ceil(notFollowingYet.length / accounts.length));
+                    console.log("\nEach account will follow approximately ".concat(followsPerAccount, " users"));
+                    accountDistribution = distributeUsersToAccounts(notFollowingYet, accounts.length, followsPerAccount);
+                    // Show distribution plan
+                    console.log("\nFollow distribution plan:");
+                    accountDistribution.forEach(function (users, index) {
+                        console.log("Account ".concat(index + 1, " (").concat(accounts[index].BLUESKY_USERNAME, "): ").concat(users.length, " follows"));
+                    });
                     return [4 /*yield*/, new Promise(function (resolve) {
-                            rl.question("Do you want to proceed with following ".concat(notFollowingYet.length, " accounts? (yes/no): "), resolve);
+                            rl.question("\nDo you want to proceed with following ".concat(notFollowingYet.length, " accounts across ").concat(accounts.length, " accounts? (yes/no): "), resolve);
                         })];
                 case 11:
-                    confirm = _b.sent();
+                    confirm = _a.sent();
                     if (confirm.toLowerCase() !== "yes") {
                         console.log("Operation cancelled. Exiting.");
                         process.exit(0);
                     }
+                    accountStatuses = [];
                     return [4 /*yield*/, new Promise(function (resolve) {
                             rl.question("Choose rate limit strategy: (1) Conservative (slower but safer) or (2) Standard: ", resolve);
                         })];
                 case 12:
-                    strategy = _b.sent();
+                    strategy = _a.sent();
                     isConservative = strategy === "1";
                     if (isConservative) {
                         console.log("Using conservative rate limit strategy - this will be slower but more reliable");
                     }
-                    // Follow accounts with rate limit handling
-                    return [4 /*yield*/, followAccountsWithRateLimits(agent, notFollowingYet, isConservative)];
+                    i = 0;
+                    _a.label = 13;
                 case 13:
-                    // Follow accounts with rate limit handling
-                    _b.sent();
-                    console.log("\nFollow operation completed!");
+                    if (!(i < accounts.length)) return [3 /*break*/, 21];
+                    if (accountDistribution[i].length === 0) {
+                        console.log("No users to follow for account ".concat(i + 1, ", skipping"));
+                        return [3 /*break*/, 20];
+                    }
+                    console.log("\n===== Processing account ".concat(i + 1, ": ").concat(accounts[i].BLUESKY_USERNAME, " ====="));
+                    agent = new api_1.BskyAgent({ service: "https://bsky.social" });
+                    _a.label = 14;
+                case 14:
+                    _a.trys.push([14, 19, , 20]);
+                    return [4 /*yield*/, agent.login({
+                            identifier: accounts[i].BLUESKY_USERNAME,
+                            password: accounts[i].BLUESKY_PASSWORD,
+                        })];
+                case 15:
+                    loginResponse = _a.sent();
+                    accountDID = loginResponse.data.did;
+                    console.log("Logged in as ".concat(accounts[i].BLUESKY_USERNAME, " (").concat(accountDID, ")"));
+                    accountStatus = {
+                        username: accounts[i].BLUESKY_USERNAME,
+                        did: accountDID,
+                        followsCompleted: 0,
+                        followsAttempted: 0,
+                        rateLimits: {
+                            hourlyPoints: 0,
+                            dailyPoints: 0,
+                            hourlyResetTime: Date.now() + HOUR_IN_MS,
+                            dailyResetTime: Date.now() + DAY_IN_MS,
+                            lastActionTime: 0
+                        },
+                        followedUsers: []
+                    };
+                    usersToFollowForThisAccount = accountDistribution[i];
+                    console.log("Following ".concat(usersToFollowForThisAccount.length, " users with this account"));
+                    return [4 /*yield*/, followAccountsWithRateLimits(agent, usersToFollowForThisAccount, isConservative, accountStatus)];
+                case 16:
+                    _a.sent();
+                    // Add account status to list
+                    accountStatuses.push(accountStatus);
+                    if (!(i < accounts.length - 1)) return [3 /*break*/, 18];
+                    console.log("Waiting ".concat(ACCOUNT_SWITCH_DELAY / 1000, " seconds before switching to next account..."));
+                    return [4 /*yield*/, delay(ACCOUNT_SWITCH_DELAY)];
+                case 17:
+                    _a.sent();
+                    _a.label = 18;
+                case 18: return [3 /*break*/, 20];
+                case 19:
+                    error_1 = _a.sent();
+                    console.error("Failed to login as ".concat(accounts[i].BLUESKY_USERNAME, ":"), error_1);
+                    console.log("Continuing with next account");
+                    return [3 /*break*/, 20];
+                case 20:
+                    i++;
+                    return [3 /*break*/, 13];
+                case 21:
+                    operationLog = {
+                        timestamp: new Date().toISOString(),
+                        totalUsersFollowed: accountStatuses.reduce(function (total, acc) { return total + acc.followsCompleted; }, 0),
+                        totalAttempted: accountStatuses.reduce(function (total, acc) { return total + acc.followsAttempted; }, 0),
+                        accountStatuses: accountStatuses
+                    };
+                    fs.writeFileSync(LOG_FILE, JSON.stringify(operationLog, null, 2));
+                    console.log("\nOperation log saved to ".concat(LOG_FILE));
+                    console.log("\n===== Follow Operation Summary =====");
+                    console.log("Total users followed: ".concat(operationLog.totalUsersFollowed, "/").concat(operationLog.totalAttempted));
+                    accountStatuses.forEach(function (status) {
+                        console.log("Account ".concat(status.username, ": ").concat(status.followsCompleted, "/").concat(status.followsAttempted, " follows completed"));
+                    });
                     rl.close();
                     return [2 /*return*/];
             }
         });
     });
 }
-// Login function
-function login() {
-    return __awaiter(this, void 0, void 0, function () {
-        var service, identifier, password, agent, response, agentDID, error_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, new Promise(function (resolve) {
-                        rl.question("Enter service URL (default: https://bsky.social): ", function (answer) {
-                            resolve(answer || "https://bsky.social");
-                        });
-                    })];
-                case 1:
-                    service = _a.sent();
-                    return [4 /*yield*/, new Promise(function (resolve) {
-                            rl.question("Enter handle or DID: ", resolve);
-                        })];
-                case 2:
-                    identifier = _a.sent();
-                    return [4 /*yield*/, new Promise(function (resolve) {
-                            rl.question("Enter app password: ", resolve);
-                        })];
-                case 3:
-                    password = _a.sent();
-                    console.log("Logging in...");
-                    agent = new api_1.BskyAgent({ service: service });
-                    _a.label = 4;
-                case 4:
-                    _a.trys.push([4, 6, , 7]);
-                    return [4 /*yield*/, agent.login({ identifier: identifier, password: password })];
-                case 5:
-                    response = _a.sent();
-                    agentDID = response.data.did;
-                    console.log("Logged in as ".concat(agentDID));
-                    return [2 /*return*/, { agent: agent, agentDID: agentDID }];
-                case 6:
-                    error_1 = _a.sent();
-                    console.error("Failed to login:", error_1);
-                    process.exit(1);
-                    return [3 /*break*/, 7];
-                case 7: return [2 /*return*/];
+// Load accounts from JSON file
+function loadAccounts() {
+    try {
+        if (!fs.existsSync(ACCOUNTS_FILE)) {
+            console.error("Accounts file ".concat(ACCOUNTS_FILE, " not found!"));
+            process.exit(1);
+        }
+        var data = fs.readFileSync(ACCOUNTS_FILE, 'utf8');
+        var accounts = JSON.parse(data);
+        if (!Array.isArray(accounts) || accounts.length === 0) {
+            console.error("Accounts file does not contain a valid array of accounts");
+            process.exit(1);
+        }
+        // Validate account structure
+        accounts.forEach(function (account, index) {
+            if (!account.BLUESKY_USERNAME || !account.BLUESKY_PASSWORD) {
+                console.error("Account at index ".concat(index, " is missing required fields"));
+                process.exit(1);
             }
         });
-    });
+        return accounts;
+    }
+    catch (error) {
+        console.error("Failed to load accounts:", error);
+        process.exit(1);
+    }
 }
 // Choose mode function
 function chooseMode() {
@@ -269,7 +326,7 @@ function resolveDID(agent, handleOrDID) {
         });
     });
 }
-// Fetch followers, limited to MAX_FOLLOWS
+// Fetch followers, limited by total
 function fetchFollowers(agent, did, maxFollows) {
     return __awaiter(this, void 0, void 0, function () {
         var PAGE_LIMIT, cursor, followers, count, res, newFollowers, error_3;
@@ -321,7 +378,7 @@ function fetchFollowers(agent, did, maxFollows) {
         });
     });
 }
-// Fetch likers of a post, limited to MAX_FOLLOWS
+// Fetch likers of a post, limited by total
 function fetchLikers(agent, postURI, maxLikes) {
     return __awaiter(this, void 0, void 0, function () {
         var PAGE_LIMIT, cursor, likers, count, match, _, handle, rkey, did, res, newLikers, error_4;
@@ -395,32 +452,55 @@ function fetchLikers(agent, postURI, maxLikes) {
         });
     });
 }
+// Distribute users across accounts
+function distributeUsersToAccounts(users, numAccounts, maxPerAccount) {
+    var distribution = Array(numAccounts).fill(null).map(function () { return []; });
+    // Shuffle users for more random distribution
+    var shuffledUsers = __spreadArray([], users, true).sort(function () { return Math.random() - 0.5; });
+    var accountIndex = 0;
+    for (var _i = 0, shuffledUsers_1 = shuffledUsers; _i < shuffledUsers_1.length; _i++) {
+        var user = shuffledUsers_1[_i];
+        // If this account has reached its max, move to next account
+        if (distribution[accountIndex].length >= maxPerAccount) {
+            accountIndex = (accountIndex + 1) % numAccounts;
+            // If we've gone through all accounts and they're all at max, stop
+            if (accountIndex === 0) {
+                var allFull = distribution.every(function (list) { return list.length >= maxPerAccount; });
+                if (allFull)
+                    break;
+            }
+        }
+        distribution[accountIndex].push(user);
+        accountIndex = (accountIndex + 1) % numAccounts;
+    }
+    return distribution;
+}
 // Check and update rate limits, returns the delay needed before next action
-function updateRateLimits(isConservative) {
+function updateRateLimits(tracker, isConservative) {
     var now = Date.now();
     // Check if hourly reset is due
-    if (now > rateLimits.hourlyResetTime) {
-        rateLimits.hourlyPoints = 0;
-        rateLimits.hourlyResetTime = now + HOUR_IN_MS;
+    if (now > tracker.hourlyResetTime) {
+        tracker.hourlyPoints = 0;
+        tracker.hourlyResetTime = now + HOUR_IN_MS;
         console.log("Hourly rate limit reset");
     }
     // Check if daily reset is due
-    if (now > rateLimits.dailyResetTime) {
-        rateLimits.dailyPoints = 0;
-        rateLimits.dailyResetTime = now + DAY_IN_MS;
+    if (now > tracker.dailyResetTime) {
+        tracker.dailyPoints = 0;
+        tracker.dailyResetTime = now + DAY_IN_MS;
         console.log("Daily rate limit reset");
     }
     // Calculate safe thresholds (80% of limits for conservative, 90% for standard)
     var hourlyThreshold = isConservative ? MAX_POINTS_PER_HOUR * 0.8 : MAX_POINTS_PER_HOUR * 0.9;
     var dailyThreshold = isConservative ? MAX_POINTS_PER_DAY * 0.8 : MAX_POINTS_PER_DAY * 0.9;
     // Check if we're approaching limits
-    if (rateLimits.hourlyPoints >= hourlyThreshold) {
-        var timeToHourlyReset = rateLimits.hourlyResetTime - now;
+    if (tracker.hourlyPoints >= hourlyThreshold) {
+        var timeToHourlyReset = tracker.hourlyResetTime - now;
         console.log("Approaching hourly rate limit. Waiting until reset in ".concat(Math.ceil(timeToHourlyReset / 60000), " minutes."));
         return timeToHourlyReset;
     }
-    if (rateLimits.dailyPoints >= dailyThreshold) {
-        var timeToDailyReset = rateLimits.dailyResetTime - now;
+    if (tracker.dailyPoints >= dailyThreshold) {
+        var timeToDailyReset = tracker.dailyResetTime - now;
         console.log("Approaching daily rate limit. Waiting until reset in ".concat(Math.ceil(timeToDailyReset / 3600000), " hours."));
         return timeToDailyReset;
     }
@@ -433,7 +513,7 @@ function updateRateLimits(isConservative) {
         var safeDelayBetweenActions = Math.ceil(HOUR_IN_MS / actionsPerHour);
         minDelay = Math.max(minDelay, safeDelayBetweenActions);
     }
-    var timeSinceLastAction = now - rateLimits.lastActionTime;
+    var timeSinceLastAction = now - tracker.lastActionTime;
     return Math.max(0, minDelay - timeSinceLastAction);
 }
 // Process rate limit headers from response
@@ -450,9 +530,9 @@ function processRateLimitHeaders(headers) {
     }
 }
 // Follow accounts with rate limit handling
-function followAccountsWithRateLimits(agent, toFollow, isConservative) {
+function followAccountsWithRateLimits(agent, toFollow, isConservative, accountStatus) {
     return __awaiter(this, void 0, void 0, function () {
-        var total, followed, failures, consecutiveFailures, MAX_CONSECUTIVE_FAILURES, maxFollowsPerHour, estimatedHours, i, user, waitTime, beforeFollow, response, afterFollow, typedResponse, progress, remainingUsers, avgTimePerUser, estimatedTimeRemaining, jitter, error_5, resetTime, waitTime_1, backoffTime, backoffTime;
+        var total, followed, failures, consecutiveFailures, MAX_CONSECUTIVE_FAILURES, i, user, waitTime, beforeFollow, response, afterFollow, typedResponse, progress, jitter, error_5, resetTime, waitTime_1, backoffTime, backoffTime;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -461,15 +541,18 @@ function followAccountsWithRateLimits(agent, toFollow, isConservative) {
                     failures = 0;
                     consecutiveFailures = 0;
                     MAX_CONSECUTIVE_FAILURES = 5;
-                    maxFollowsPerHour = Math.floor(MAX_POINTS_PER_HOUR / POINTS_PER_FOLLOW);
-                    estimatedHours = Math.ceil(total / maxFollowsPerHour);
-                    console.log("Estimated time to follow all accounts: ~".concat(estimatedHours, " hour(s)"));
                     i = 0;
                     _a.label = 1;
                 case 1:
                     if (!(i < total)) return [3 /*break*/, 20];
                     user = toFollow[i];
-                    waitTime = updateRateLimits(isConservative);
+                    accountStatus.followsAttempted++;
+                    // Check if we've already following this user
+                    if (accountStatus.followedUsers.includes(user.did)) {
+                        console.log("Already followed ".concat(user.handle, " with this account, skipping."));
+                        return [3 /*break*/, 19];
+                    }
+                    waitTime = updateRateLimits(accountStatus.rateLimits, isConservative);
                     if (!(waitTime > 0)) return [3 /*break*/, 3];
                     console.log("Rate limit protection: waiting for ".concat(Math.ceil(waitTime / 1000), " seconds..."));
                     return [4 /*yield*/, delay(waitTime)];
@@ -488,19 +571,16 @@ function followAccountsWithRateLimits(agent, toFollow, isConservative) {
                         processRateLimitHeaders(typedResponse.headers);
                     }
                     // Update rate limit counters
-                    rateLimits.hourlyPoints += POINTS_PER_FOLLOW;
-                    rateLimits.dailyPoints += POINTS_PER_FOLLOW;
-                    rateLimits.lastActionTime = afterFollow;
+                    accountStatus.rateLimits.hourlyPoints += POINTS_PER_FOLLOW;
+                    accountStatus.rateLimits.dailyPoints += POINTS_PER_FOLLOW;
+                    accountStatus.rateLimits.lastActionTime = afterFollow;
+                    // Update account status
                     followed++;
+                    accountStatus.followsCompleted++;
+                    accountStatus.followedUsers.push(user.did);
                     consecutiveFailures = 0;
                     progress = (followed / total) * 100;
-                    remainingUsers = total - followed;
-                    avgTimePerUser = (afterFollow - beforeFollow) + FOLLOW_DELAY;
-                    estimatedTimeRemaining = remainingUsers * avgTimePerUser;
                     console.log("Followed ".concat(user.handle, " (").concat(followed, "/").concat(total, ", ").concat(progress.toFixed(1), "%)"));
-                    if (remainingUsers > 0) {
-                        console.log("Estimated time remaining: ~".concat(formatTime(estimatedTimeRemaining)));
-                    }
                     jitter = Math.random() * 1000;
                     return [4 /*yield*/, delay(FOLLOW_DELAY + jitter)];
                 case 5:
@@ -546,10 +626,10 @@ function followAccountsWithRateLimits(agent, toFollow, isConservative) {
                 case 15:
                     console.error("Failed to follow ".concat(user.handle, ":"), error_5);
                     if (!(consecutiveFailures >= MAX_CONSECUTIVE_FAILURES)) return [3 /*break*/, 17];
-                    console.log("".concat(MAX_CONSECUTIVE_FAILURES, " consecutive failures detected. Taking a break for 10 minutes."));
-                    return [4 /*yield*/, delay(600000)];
+                    console.log("".concat(MAX_CONSECUTIVE_FAILURES, " consecutive failures detected. Taking a break for 5 minutes."));
+                    return [4 /*yield*/, delay(300000)];
                 case 16:
-                    _a.sent(); // 10 minutes
+                    _a.sent(); // 5 minutes
                     consecutiveFailures = 0;
                     _a.label = 17;
                 case 17: return [3 /*break*/, 18];
@@ -559,9 +639,9 @@ function followAccountsWithRateLimits(agent, toFollow, isConservative) {
                         console.log("\nProgress Update:");
                         console.log("- Followed: ".concat(followed, "/").concat(total, " (").concat(((followed / total) * 100).toFixed(1), "%)"));
                         console.log("- Failed: ".concat(failures));
-                        console.log("- Hourly points used: ".concat(rateLimits.hourlyPoints, "/").concat(MAX_POINTS_PER_HOUR));
-                        console.log("- Daily points used: ".concat(rateLimits.dailyPoints, "/").concat(MAX_POINTS_PER_DAY));
-                        console.log("- Hourly reset: ".concat(new Date(rateLimits.hourlyResetTime).toLocaleTimeString()));
+                        console.log("- Hourly points used: ".concat(accountStatus.rateLimits.hourlyPoints, "/").concat(MAX_POINTS_PER_HOUR));
+                        console.log("- Daily points used: ".concat(accountStatus.rateLimits.dailyPoints, "/").concat(MAX_POINTS_PER_DAY));
+                        console.log("- Hourly reset: ".concat(new Date(accountStatus.rateLimits.hourlyResetTime).toLocaleTimeString()));
                         console.log();
                     }
                     _a.label = 19;
@@ -569,8 +649,8 @@ function followAccountsWithRateLimits(agent, toFollow, isConservative) {
                     i++;
                     return [3 /*break*/, 1];
                 case 20:
-                    // Final summary
-                    console.log("\nFollow Operation Complete:");
+                    // Final summary for this account
+                    console.log("\nAccount Operation Complete:");
                     console.log("- Successfully followed: ".concat(followed, "/").concat(total, " accounts"));
                     console.log("- Failed attempts: ".concat(failures));
                     return [2 /*return*/];

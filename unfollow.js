@@ -47,12 +47,17 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var api_1 = require("@atproto/api");
 var readline = require("readline");
+var fs = require("fs");
 // Configuration
-var MAX_FOLLOWS = 15000; // Max follows to fetch
+var MAX_FOLLOWS = 2000; // Max follows to fetch
 var BATCH_SIZE = 50; // Number of follows to process in a batch (fetching is still done in batches)
 var BATCH_DELAY = 1000; // Delay between fetching batches in ms
-var UNFOLLOW_DELAY = 500; // Delay between unfollowing each account in ms
 var LOG_FILE = "unfollow-log.json";
+// Rate limit configuration
+var HOURLY_POINT_LIMIT = 5000; // 5000 points per hour
+var DELETE_COST = 1; // 1 point per DELETE operation
+var HOURLY_DELETE_LIMIT = Math.floor(HOURLY_POINT_LIMIT / DELETE_COST); // Max deletes per hour
+var BASE_DELAY = 3600 * 1000 / HOURLY_DELETE_LIMIT; // Base delay in ms to stay under hourly limit
 // Create CLI interface
 var rl = readline.createInterface({
     input: process.stdin,
@@ -65,7 +70,7 @@ function main() {
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    console.log("=== Bluesky Mass Unfollow Tool ===");
+                    console.log("=== Bluesky Mass Unfollow Tool (Rate-Limited) ===");
                     return [4 /*yield*/, login()];
                 case 1:
                     _a = _b.sent(), agent = _a.agent, agentDID = _a.agentDID;
@@ -76,10 +81,11 @@ function main() {
                     follows = _b.sent();
                     console.log("Found ".concat(follows.length, " follows (max ").concat(MAX_FOLLOWS, ")"));
                     // Save fetched follows to file
-                    //   fs.writeFileSync(LOG_FILE, JSON.stringify(follows, null, 2));
-                    //   console.log(`Saved fetched follows to ${LOG_FILE}`);
+                    // fs.writeFileSync(LOG_FILE, JSON.stringify(follows, null, 2));
+                    // console.log(`Saved fetched follows to ${LOG_FILE}`);
                     // Preview all accounts to unfollow
-                    console.log("\nUnfollowing all accounts...");
+                    console.log("\nUnfollowing all accounts (with rate limit handling)...");
+                    console.log("Rate limit: ".concat(HOURLY_DELETE_LIMIT, " unfollows per hour"));
                     return [4 /*yield*/, new Promise(function (resolve) {
                             rl.question("Do you want to proceed with unfollowing all accounts? (yes/no): ", resolve);
                         })];
@@ -89,10 +95,10 @@ function main() {
                         console.log("Operation cancelled. Exiting.");
                         process.exit(0);
                     }
-                    // Unfollow all accounts one by one
-                    return [4 /*yield*/, unfollowAccountsOneByOne(agent, agentDID, follows)];
+                    // Unfollow all accounts with rate limit handling
+                    return [4 /*yield*/, unfollowAccountsWithRateLimit(agent, agentDID, follows)];
                 case 4:
-                    // Unfollow all accounts one by one
+                    // Unfollow all accounts with rate limit handling
                     _b.sent();
                     console.log("\nUnfollow operation completed!");
                     rl.close();
@@ -158,7 +164,7 @@ function fetchFollows(agent, did, maxFollows) {
                     count = 0;
                     _a.label = 1;
                 case 1:
-                    _a.trys.push([1, 6, , 7]);
+                    _a.trys.push([1, 7, , 8]);
                     _a.label = 2;
                 case 2: return [4 /*yield*/, agent.com.atproto.repo.listRecords({
                         repo: did,
@@ -182,42 +188,99 @@ function fetchFollows(agent, did, maxFollows) {
                     count += records.length;
                     if (count >= maxFollows) {
                         follows = follows.slice(0, maxFollows); // Limit the result to maxFollows
-                        return [3 /*break*/, 5];
+                        return [3 /*break*/, 6];
                     }
                     console.log("Fetched ".concat(count, " follows..."));
-                    _a.label = 4;
+                    if (!cursor) return [3 /*break*/, 5];
+                    return [4 /*yield*/, delay(1000)];
                 case 4:
-                    if (cursor && count < maxFollows) return [3 /*break*/, 2];
+                    _a.sent();
                     _a.label = 5;
-                case 5: return [2 /*return*/, follows];
-                case 6:
+                case 5:
+                    if (cursor && count < maxFollows) return [3 /*break*/, 2];
+                    _a.label = 6;
+                case 6: return [2 /*return*/, follows];
+                case 7:
                     error_2 = _a.sent();
                     console.error("Failed to fetch follows:", error_2);
                     return [2 /*return*/, follows]; // Return what we have so far
-                case 7: return [2 /*return*/];
+                case 8: return [2 /*return*/];
             }
         });
     });
 }
-// Unfollow accounts one by one
-function unfollowAccountsOneByOne(agent, did, toUnfollow) {
+// Parse rate limit headers from the response
+function parseRateLimitHeaders(headers) {
+    try {
+        var limit = parseInt(headers['ratelimit-limit'] || '0');
+        var remaining = parseInt(headers['ratelimit-remaining'] || '0');
+        var reset = parseInt(headers['ratelimit-reset'] || '0');
+        if (limit && reset) {
+            return { limit: limit, remaining: remaining, reset: reset };
+        }
+    }
+    catch (error) {
+        console.warn("Failed to parse rate limit headers:", error);
+    }
+    return null;
+}
+// Calculate dynamic delay based on rate limit information
+function calculateDelay(rateLimitInfo) {
+    if (!rateLimitInfo) {
+        return BASE_DELAY; // Use default if no rate limit info
+    }
+    var remaining = rateLimitInfo.remaining, reset = rateLimitInfo.reset;
+    // Current timestamp in seconds
+    var now = Math.floor(Date.now() / 1000);
+    // Time until reset in seconds
+    var timeUntilReset = Math.max(1, reset - now);
+    if (remaining <= 1) {
+        // If we're out of rate limit, wait until reset plus a small buffer
+        return (timeUntilReset + 5) * 1000;
+    }
+    else {
+        // Calculate delay to spread remaining capacity over time until reset
+        // Add 10% buffer to be safe
+        return (timeUntilReset / remaining) * 1100;
+    }
+}
+// Unfollow accounts with rate limit handling
+function unfollowAccountsWithRateLimit(agent, did, toUnfollow) {
     return __awaiter(this, void 0, void 0, function () {
-        var total, unfollowed, i, follow, parts, rkey, error_3;
+        var total, unfollowed, rateLimitInfo, startIndex, resumeAnswer, i, follow, parts, rkey, dynamicDelay, remainingItems, estimatedTimeSeconds, estimatedTimeHours, estimatedTimeMinutes, response, progress, error_3, now, timeUntilReset, waitMs;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     total = toUnfollow.length;
                     unfollowed = 0;
-                    i = 0;
-                    _a.label = 1;
+                    rateLimitInfo = null;
+                    startIndex = 0;
+                    return [4 /*yield*/, new Promise(function (resolve) {
+                            rl.question("Do you want to resume from a specific index? (0-".concat(total - 1, ", or 'no'): "), resolve);
+                        })];
                 case 1:
-                    if (!(i < total)) return [3 /*break*/, 8];
+                    resumeAnswer = _a.sent();
+                    if (resumeAnswer.toLowerCase() !== 'no' && !isNaN(parseInt(resumeAnswer))) {
+                        startIndex = parseInt(resumeAnswer);
+                        console.log("Resuming from index ".concat(startIndex));
+                    }
+                    i = startIndex;
+                    _a.label = 2;
+                case 2:
+                    if (!(i < total)) return [3 /*break*/, 13];
                     follow = toUnfollow[i];
                     parts = follow.uri.split('/');
                     rkey = parts[parts.length - 1];
-                    _a.label = 2;
-                case 2:
-                    _a.trys.push([2, 4, , 5]);
+                    dynamicDelay = calculateDelay(rateLimitInfo);
+                    _a.label = 3;
+                case 3:
+                    _a.trys.push([3, 5, , 10]);
+                    remainingItems = total - i;
+                    estimatedTimeSeconds = Math.round((remainingItems * dynamicDelay) / 1000);
+                    estimatedTimeHours = Math.floor(estimatedTimeSeconds / 3600);
+                    estimatedTimeMinutes = Math.floor((estimatedTimeSeconds % 3600) / 60);
+                    console.log("Processing ".concat(i + 1, "/").concat(total, " (").concat(unfollowed, " unfollowed) - Current delay: ").concat(Math.round(dynamicDelay), "ms"));
+                    console.log("Estimated time remaining: ".concat(estimatedTimeHours, "h ").concat(estimatedTimeMinutes, "m"));
                     return [4 /*yield*/, agent.com.atproto.repo.applyWrites({
                             repo: did,
                             writes: [
@@ -228,25 +291,62 @@ function unfollowAccountsOneByOne(agent, did, toUnfollow) {
                                 }
                             ],
                         })];
-                case 3:
-                    _a.sent();
-                    unfollowed++;
-                    console.log("Unfollowed ".concat(unfollowed, "/").concat(total, " accounts..."));
-                    return [3 /*break*/, 5];
                 case 4:
-                    error_3 = _a.sent();
-                    console.error("Failed to unfollow account at index ".concat(i, ":"), error_3);
-                    return [3 /*break*/, 5];
+                    response = _a.sent();
+                    // Extract rate limit information from headers
+                    if (response && response.headers) {
+                        rateLimitInfo = parseRateLimitHeaders(response.headers);
+                        if (rateLimitInfo && rateLimitInfo.remaining !== undefined) {
+                            console.log("Rate limit remaining: ".concat(rateLimitInfo.remaining, "/").concat(rateLimitInfo.limit));
+                        }
+                    }
+                    unfollowed++;
+                    progress = {
+                        total: total,
+                        unfollowed: unfollowed,
+                        currentIndex: i,
+                        lastProcessed: new Date().toISOString()
+                    };
+                    fs.writeFileSync('unfollow-progress.json', JSON.stringify(progress, null, 2));
+                    return [3 /*break*/, 10];
                 case 5:
-                    if (!(i + 1 < total)) return [3 /*break*/, 7];
-                    return [4 /*yield*/, delay(UNFOLLOW_DELAY)];
+                    error_3 = _a.sent();
+                    console.error("Failed to unfollow account at index ".concat(i, ":"), error_3.message || error_3);
+                    if (!(error_3.status === 429 || (error_3.message && error_3.message.includes("Rate Limit")))) return [3 /*break*/, 9];
+                    console.log("Rate limit exceeded. Waiting for reset...");
+                    if (!error_3.headers) return [3 /*break*/, 7];
+                    rateLimitInfo = parseRateLimitHeaders(error_3.headers);
+                    if (!(rateLimitInfo && rateLimitInfo.reset)) return [3 /*break*/, 7];
+                    now = Math.floor(Date.now() / 1000);
+                    timeUntilReset = Math.max(10, rateLimitInfo.reset - now);
+                    waitMs = (timeUntilReset + 5) * 1000;
+                    console.log("Waiting ".concat(Math.round(waitMs / 1000), " seconds for rate limit to reset..."));
+                    return [4 /*yield*/, delay(waitMs)];
                 case 6:
                     _a.sent();
-                    _a.label = 7;
+                    // Retry this index
+                    i--;
+                    return [3 /*break*/, 12];
                 case 7:
+                    // If we couldn't extract specific timing, wait for a safe amount of time
+                    console.log("Waiting 15 minutes before retrying...");
+                    return [4 /*yield*/, delay(15 * 60 * 1000)];
+                case 8:
+                    _a.sent(); // 15 minutes
+                    // Retry this index
+                    i--;
+                    return [3 /*break*/, 12];
+                case 9: return [3 /*break*/, 10];
+                case 10:
+                    if (!(i + 1 < total)) return [3 /*break*/, 12];
+                    return [4 /*yield*/, delay(dynamicDelay)];
+                case 11:
+                    _a.sent();
+                    _a.label = 12;
+                case 12:
                     i++;
-                    return [3 /*break*/, 1];
-                case 8: return [2 /*return*/];
+                    return [3 /*break*/, 2];
+                case 13: return [2 /*return*/];
             }
         });
     });
