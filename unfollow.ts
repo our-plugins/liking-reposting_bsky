@@ -4,7 +4,7 @@ import * as readline from "readline";
 import * as fs from "fs";
 
 // Configuration
-const MAX_FOLLOWS = 2000; // Max follows to fetch
+const MAX_FOLLOWS = 20000; // Max follows to fetch
 const BATCH_SIZE = 50; // Number of follows to process in a batch (fetching is still done in batches)
 const BATCH_DELAY = 1000; // Delay between fetching batches in ms
 const LOG_FILE = "unfollow-log.json";

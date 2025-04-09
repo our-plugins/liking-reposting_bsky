@@ -6,7 +6,7 @@ import * as path from "path";
 
 // Configuration
 const ACCOUNTS_FILE = "accounts.json";
-const MAX_FOLLOWS_PER_ACCOUNT = 10; // Each account follows this many users
+const MAX_FOLLOWS_PER_ACCOUNT = 150; // Each account follows this many users
 const BATCH_SIZE = 10; // Process users in batches
 const BATCH_DELAY = 3000; // Delay between batches (ms)
 const FOLLOW_DELAY = 1500; // Delay between follows (ms)

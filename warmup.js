@@ -50,7 +50,7 @@ var fs = require("fs");
 var readline = require("readline");
 // Configuration
 var ACCOUNTS_FILE = "accounts.json";
-var MAX_FOLLOWS_PER_ACCOUNT = 10; // Each account follows this many users
+var MAX_FOLLOWS_PER_ACCOUNT = 150; // Each account follows this many users
 var BATCH_SIZE = 10; // Process users in batches
 var BATCH_DELAY = 3000; // Delay between batches (ms)
 var FOLLOW_DELAY = 1500; // Delay between follows (ms)

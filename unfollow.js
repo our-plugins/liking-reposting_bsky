@@ -49,7 +49,7 @@ var api_1 = require("@atproto/api");
 var readline = require("readline");
 var fs = require("fs");
 // Configuration
-var MAX_FOLLOWS = 2000; // Max follows to fetch
+var MAX_FOLLOWS = 20000; // Max follows to fetch
 var BATCH_SIZE = 50; // Number of follows to process in a batch (fetching is still done in batches)
 var BATCH_DELAY = 1000; // Delay between fetching batches in ms
 var LOG_FILE = "unfollow-log.json";

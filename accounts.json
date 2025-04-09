@@ -1,14 +1,78 @@
 [
-    {
-      "BLUESKY_USERNAME": "healtyrecipes.bsky.social",
-      "BLUESKY_PASSWORD": "sqsl-bdyp-m7oj-wjqg"
-    },
-    {
-      "BLUESKY_USERNAME": "grandmarecipes.bsky.social",
-      "BLUESKY_PASSWORD": "5op2-xjyy-t7ds-c5e2"
-    },
-    {
-      "BLUESKY_USERNAME": "yummyrecipes.bsky.social",
-      "BLUESKY_PASSWORD": "alvg-3vsc-4did-c3zg"
-    }
-  ]
+  {
+    "BLUESKY_USERNAME": "berthavannorman.bsky.social",
+    "BLUESKY_PASSWORD": "xef7-lanh-6xlz-lvkj"
+  },
+  {
+    "BLUESKY_USERNAME": "healtyrecipes.bsky.social",
+    "BLUESKY_PASSWORD": "sqsl-bdyp-m7oj-wjqg"
+  },
+  {
+    "BLUESKY_USERNAME": "yummyrecipes.bsky.social",
+    "BLUESKY_PASSWORD": "alvg-3vsc-4did-c3zg"
+  },
+  {
+    "BLUESKY_USERNAME": "yumrecipes.bsky.social",
+    "BLUESKY_PASSWORD": "e37r-2iqf-nzxe-rlez"
+  },
+  {
+    "BLUESKY_USERNAME": "muncherrecipes.bsky.social",
+    "BLUESKY_PASSWORD": "mevb-rgcx-bwoq-gwlo"
+  },
+  {
+    "BLUESKY_USERNAME": "snapfoodie.bsky.social",
+    "BLUESKY_PASSWORD": "ena7-aslk-uckl-gkjt"
+  },
+  {
+    "BLUESKY_USERNAME": "feeltasty.bsky.social",
+    "BLUESKY_PASSWORD": "qyqg-rqel-t3gv-nbkp"
+  },
+  {
+    "BLUESKY_USERNAME": "quicklyyumi.bsky.social",
+    "BLUESKY_PASSWORD": "nreh-5yfr-pekd-lgwb"
+  },
+  {
+    "BLUESKY_USERNAME": "worldrecipes.bsky.social",
+    "BLUESKY_PASSWORD": "4pm6-iwy5-vol3-nmz4"
+  },
+  {
+    "BLUESKY_USERNAME": "recipestime.bsky.social",
+    "BLUESKY_PASSWORD": "gopd-ifjw-zi4g-yb7g"
+  },
+  {
+    "BLUESKY_USERNAME": "willyrecipes.bsky.social",
+    "BLUESKY_PASSWORD": "eidt-zszh-w5by-hlbq"
+  },
+  {
+    "BLUESKY_USERNAME": "recipes4seasons.bsky.social",
+    "BLUESKY_PASSWORD": "2u2k-d6px-xe5y-ey2l"
+  },
+  {
+    "BLUESKY_USERNAME": "fastfoodrecipes.bsky.social",
+    "BLUESKY_PASSWORD": "eigz-gapb-okwg-x7fh"
+  },
+  {
+    "BLUESKY_USERNAME": "recipesking.bsky.social",
+    "BLUESKY_PASSWORD": "stc4-ftri-r5a4-tk7d"
+  },
+  {
+    "BLUESKY_USERNAME": "easyrecipeblog.bsky.social",
+    "BLUESKY_PASSWORD": "tcrl-pow3-eocx-jcem"
+  },
+  {
+    "BLUESKY_USERNAME": "alexarecipes.bsky.social",
+    "BLUESKY_PASSWORD": "gg6s-gfy7-nwka-3xbi"
+  },
+  {
+    "BLUESKY_USERNAME": "emmarecipes.bsky.social",
+    "BLUESKY_PASSWORD": "2dwa-hj5g-kqge-l6iv"
+  },
+  {
+    "BLUESKY_USERNAME": "nadarecipes.bsky.social",
+    "BLUESKY_PASSWORD": "py6a-knzg-lcte-bcgs"
+  },
+  {
+    "BLUESKY_USERNAME": "sararecipes.bsky.social",
+    "BLUESKY_PASSWORD": "pvdn-4q7n-fbjx-xzyl"
+  }
+]
