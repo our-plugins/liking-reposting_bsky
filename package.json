@@ -1,8 +1,32 @@
 {
   "dependencies": {
-    "@atproto/api": "^0.13.22"
+    "@atproto/api": "^0.13.35",
+    "express": "^5.1.0"
   },
   "devDependencies": {
-    "@types/node": "^22.10.2"
-  }
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.14.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "name": "liking-reposting_bsky",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "ts-node dashborad.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/our-plugins/liking-reposting_bsky.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/our-plugins/liking-reposting_bsky/issues"
+  },
+  "homepage": "https://github.com/our-plugins/liking-reposting_bsky#readme"
 }
