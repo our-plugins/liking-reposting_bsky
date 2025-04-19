@@ -110,43 +110,35 @@ async function getUserPosts(agent: BskyAgent, did: string, limit: number = 20): 
 }
 
 // Get followers and following counts
-// Get followers and following counts
 async function getFollowCounts(agent: BskyAgent, did: string): Promise<{ followers: number, following: number }> {
-    try {
-      const [followers, following] = await Promise.all([
-        agent.getFollowers({ actor: did, limit: 1 }),
-        agent.getFollows({ actor: did, limit: 1 })
-      ]);
-      
-      // Safely extract the counts with proper type checking
-      let followersCount = 0;
-      let followingCount = 0;
-      
-      // Check if followers data has the expected structure
-      if (followers.data && 
-          followers.data.followers && 
-          Array.isArray(followers.data.followers) && 
-          typeof followers.data.total === 'number') {
-        followersCount = followers.data.total;
-      }
-      
-      // Check if following data has the expected structure
-      if (following.data && 
-          following.data.follows && 
-          Array.isArray(following.data.follows) && 
-          typeof following.data.total === 'number') {
-        followingCount = following.data.total;
-      }
-      
-      return {
-        followers: followersCount,
-        following: followingCount
-      };
-    } catch (error) {
-      console.error(`Failed to get follow counts for ${did}:`, error);
-      return { followers: 0, following: 0 };
+  try {
+    // Try getting the counts from the profile directly
+    const profile = await agent.getProfile({ actor: did });
+    console.log('Profile data:', JSON.stringify(profile.data, null, 2));
+    
+    let followersCount = 1;
+    let followingCount = 1;
+    
+    // Check if the profile contains follower/following counts
+    if (profile.data && typeof profile.data.followersCount === 'number') {
+      followersCount = profile.data.followersCount;
     }
+    
+    if (profile.data && typeof profile.data.followsCount === 'number') {
+      followingCount = profile.data.followsCount;
+    }
+    
+    console.log(`Extracted from profile - Followers: ${followersCount}, Following: ${followingCount}`);
+    
+    return {
+      followers: followersCount,
+      following: followingCount
+    };
+  } catch (error) {
+    console.error(`Failed to get follow counts for ${did}:`, error);
+    return { followers: 0, following: 0 };
   }
+}
 
 // Generate HTML for accounts
 async function generateAccountsHTML(accounts: Account[]): Promise<string> {

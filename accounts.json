@@ -1,7 +1,7 @@
 [
   {
     "BLUESKY_USERNAME": "berthavannorman.bsky.social",
-    "BLUESKY_PASSWORD": "xef7-lanh-6xlz-lvkj"
+    "BLUESKY_PASSWORD": "qm6l-bqcy-4uhm-cddv"
   },
   {
     "BLUESKY_USERNAME": "healtyrecipes.bsky.social",
@@ -20,10 +20,6 @@
     "BLUESKY_PASSWORD": "mevb-rgcx-bwoq-gwlo"
   },
   {
-    "BLUESKY_USERNAME": "snapfoodie.bsky.social",
-    "BLUESKY_PASSWORD": "ena7-aslk-uckl-gkjt"
-  },
-  {
     "BLUESKY_USERNAME": "feeltasty.bsky.social",
     "BLUESKY_PASSWORD": "qyqg-rqel-t3gv-nbkp"
   },
@@ -40,16 +36,8 @@
     "BLUESKY_PASSWORD": "gopd-ifjw-zi4g-yb7g"
   },
   {
-    "BLUESKY_USERNAME": "willyrecipes.bsky.social",
-    "BLUESKY_PASSWORD": "eidt-zszh-w5by-hlbq"
-  },
-  {
     "BLUESKY_USERNAME": "recipes4seasons.bsky.social",
     "BLUESKY_PASSWORD": "2u2k-d6px-xe5y-ey2l"
-  },
-  {
-    "BLUESKY_USERNAME": "fastfoodrecipes.bsky.social",
-    "BLUESKY_PASSWORD": "eigz-gapb-okwg-x7fh"
   },
   {
     "BLUESKY_USERNAME": "recipesking.bsky.social",
@@ -74,5 +62,38 @@
   {
     "BLUESKY_USERNAME": "sararecipes.bsky.social",
     "BLUESKY_PASSWORD": "pvdn-4q7n-fbjx-xzyl"
-  }
+  },
+  { "username": "ameliaharperz.bsky.social", "password": "tzu3-5xsj-zqv3-62bb" },
+  { "username": "oliviamontgomery.bsky.social", "password": "suyf-izcw-ain6-n4ie" },
+  { "username": "sophiabennettz.bsky.social", "password": "b6pg-hbyh-yroq-b2d3" },
+  { "username": "isabellablakez.bsky.social", "password": "3her-mn6s-l2px-ekmy" },
+  { "username": "avacarterz.bsky.social", "password": "l6tg-b6rw-tr2c-nhfz" },
+  { "username": "miaandersonzz.bsky.social", "password": "psph-vg67-whv3-h6e6" },
+  { "username": "chloewilliamszzz.bsky.social", "password": "ptfu-264w-gpns-kph4" },
+  { "username": "gracerichardsonz.bsky.social", "password": "puyd-smmy-4aoe-eed6" },
+  { "username": "charlottefosterzz.bsky.social", "password": "dqds-j7mq-uebw-ir2t" },
+  { "username": "scarletthayesz.bsky.social", "password": "2btw-tq5q-23g3-spnw" },
+  { "username": "abigailmoore.bsky.social", "password": "osla-lbq4-spnp-oaip" },
+  { "username": "ellataylorzzz.bsky.social", "password": "cog5-t4wc-iqpt-zrx2" },
+  { "username": "aaudreyreedw.bsky.social", "password": "q5w7-omnp-whr6-k5mv" },
+  { "username": "rubyacollins.bsky.social", "password": "dlxe-66ce-lpjv-gyme" },
+  { "username": "lucybennettz.bsky.social", "password": "yg55-4hsl-p53l-oth5" },
+  { "username": "hazelparkerz.bsky.social", "password": "oqpf-rx7u-i6i7-3ug7" },
+  { "username": "bellastormzz.bsky.social", "password": "mlmw-uqz5-vtr7-zayb" },
+  { "username": "caseyqvalez.bsky.social", "password": "mha4-tu6h-klge-y4lh" },
+  { "username": "daisyknightzz.bsky.social", "password": "tncv-3i7z-hzzc-uadk" },
+  { "username": "elizamoonzz.bsky.social", "password": "rx53-mxxf-2osb-uboz" },
+  { "username": "fionablackwoodzz.bsky.social", "password": "rjcg-sbp5-4dd4-hr27" },
+  { "username": "gemmawildezz.bsky.social", "password": "yijx-s5zh-syij-63in" },
+  { "username": "harpersteeleaaa.bsky.social", "password": "oali-lkfh-26oy-fe5h" },
+  { "username": "ivyhawkezzz.bsky.social", "password": "gjgw-aglb-xgyr-ns3d" },
+  { "username": "jasminebrookszz.bsky.social", "password": "sde5-fpck-qkoi-l5gz" },
+  { "username": "karaquinnzzzz.bsky.social", "password": "2nfd-e5ki-nq4g-sibx" },
+  { "username": "lylawoodszzz.bsky.social", "password": "gbyz-obdh-ccim-2y7z" },
+  { "username": "miavalenzz.bsky.social", "password": "4cq5-j7b4-t5d3-ag7w" },
+  { "username": "noragreyzzz.bsky.social", "password": "k53j-gqnw-kcha-zmg3" },
+  { "username": "oliviastonezzzzw.bsky.social", "password": "mpsf-cquw-acld-vg54" },
+  { "username": "piperthornzz.bsky.social", "password": "45nf-a4of-utv6-q6pv" },
+  { "username": "rubyashfordzzz.bsky.social", "password": "v2ww-itrj-bul2-tswm" },
+  { "username": "sashahunterzz.bsky.social", "password": "tcxv-3cub-apyk-2l42" }
 ]
