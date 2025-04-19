@@ -238,8 +238,8 @@ async function main() {
     accountStatuses
   };
   
-  fs.writeFileSync(LOG_FILE, JSON.stringify(operationLog, null, 2));
-  console.log(`\nOperation log saved to ${LOG_FILE}`);
+  // fs.writeFileSync(LOG_FILE, JSON.stringify(operationLog, null, 2));
+  // console.log(`\nOperation log saved to ${LOG_FILE}`);
   
   console.log("\n===== Follow Operation Summary =====");
   console.log(`Total users followed: ${operationLog.totalUsersFollowed}/${operationLog.totalAttempted}`);
