@@ -2,7 +2,7 @@ import { BskyAgent } from "@atproto/api";
 import { AppBskyActorDefs, AppBskyFeedGetLikes } from "@atproto/api";
 import * as readline from "readline";
 import * as fs from "fs";
-import mysql from "mysql2/promise";
+import * as mysql from "mysql2/promise";
 
 // Database connection
 const db = mysql.createPool({
@@ -15,7 +15,7 @@ const db = mysql.createPool({
 });
 
 // Configuration
-const MAX_FOLLOWS = 4000; // Max users to follow
+const MAX_FOLLOWS = 2000; // Max users to follow
 const BATCH_SIZE = 20; // Smaller batch size to better handle rate limits
 const BATCH_DELAY = 2000; // Increased delay between batches
 const FOLLOW_DELAY = 1000; // Increased delay between follows
