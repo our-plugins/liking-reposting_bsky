@@ -1,97 +1,48 @@
 [
-  {
-    "BLUESKY_USERNAME": "berthavannorman.bsky.social",
-    "BLUESKY_PASSWORD": "qm6l-bqcy-4uhm-cddv"
-  },
-  {
-    "BLUESKY_USERNAME": "healtyrecipes.bsky.social",
-    "BLUESKY_PASSWORD": "sqsl-bdyp-m7oj-wjqg"
-  },
-  {
-    "BLUESKY_USERNAME": "yummyrecipes.bsky.social",
-    "BLUESKY_PASSWORD": "alvg-3vsc-4did-c3zg"
-  },
-  {
-    "BLUESKY_USERNAME": "yumrecipes.bsky.social",
-    "BLUESKY_PASSWORD": "e37r-2iqf-nzxe-rlez"
-  },
-  {
-    "BLUESKY_USERNAME": "muncherrecipes.bsky.social",
-    "BLUESKY_PASSWORD": "mevb-rgcx-bwoq-gwlo"
-  },
-  {
-    "BLUESKY_USERNAME": "feeltasty.bsky.social",
-    "BLUESKY_PASSWORD": "qyqg-rqel-t3gv-nbkp"
-  },
-  {
-    "BLUESKY_USERNAME": "quicklyyumi.bsky.social",
-    "BLUESKY_PASSWORD": "nreh-5yfr-pekd-lgwb"
-  },
-  {
-    "BLUESKY_USERNAME": "worldrecipes.bsky.social",
-    "BLUESKY_PASSWORD": "4pm6-iwy5-vol3-nmz4"
-  },
-  {
-    "BLUESKY_USERNAME": "recipestime.bsky.social",
-    "BLUESKY_PASSWORD": "gopd-ifjw-zi4g-yb7g"
-  },
-  {
-    "BLUESKY_USERNAME": "recipes4seasons.bsky.social",
-    "BLUESKY_PASSWORD": "2u2k-d6px-xe5y-ey2l"
-  },
-  {
-    "BLUESKY_USERNAME": "recipesking.bsky.social",
-    "BLUESKY_PASSWORD": "stc4-ftri-r5a4-tk7d"
-  },
-  {
-    "BLUESKY_USERNAME": "easyrecipeblog.bsky.social",
-    "BLUESKY_PASSWORD": "tcrl-pow3-eocx-jcem"
-  },
-  {
-    "BLUESKY_USERNAME": "alexarecipes.bsky.social",
-    "BLUESKY_PASSWORD": "gg6s-gfy7-nwka-3xbi"
-  },
-  {
-    "BLUESKY_USERNAME": "emmarecipes.bsky.social",
-    "BLUESKY_PASSWORD": "2dwa-hj5g-kqge-l6iv"
-  },
-  {
-    "BLUESKY_USERNAME": "nadarecipes.bsky.social",
-    "BLUESKY_PASSWORD": "py6a-knzg-lcte-bcgs"
-  },
-  {
-    "BLUESKY_USERNAME": "sararecipes.bsky.social",
-    "BLUESKY_PASSWORD": "pvdn-4q7n-fbjx-xzyl"
-  },
-  { "BLUESKY_USERNAME": "ameliaharperz.bsky.social", "BLUESKY_PASSWORD": "tzu3-5xsj-zqv3-62bb" },
-  { "BLUESKY_USERNAME": "oliviamontgomery.bsky.social", "BLUESKY_PASSWORD": "suyf-izcw-ain6-n4ie" },
-  { "BLUESKY_USERNAME": "sophiabennettz.bsky.social", "BLUESKY_PASSWORD": "b6pg-hbyh-yroq-b2d3" },
-  { "BLUESKY_USERNAME": "isabellablakez.bsky.social", "BLUESKY_PASSWORD": "3her-mn6s-l2px-ekmy" },
-  { "BLUESKY_USERNAME": "avacarterz.bsky.social", "BLUESKY_PASSWORD": "l6tg-b6rw-tr2c-nhfz" },
-  { "BLUESKY_USERNAME": "miaandersonzz.bsky.social", "BLUESKY_PASSWORD": "psph-vg67-whv3-h6e6" },
-  { "BLUESKY_USERNAME": "chloewilliamszzz.bsky.social", "BLUESKY_PASSWORD": "ptfu-264w-gpns-kph4" },
-  { "BLUESKY_USERNAME": "charlottefosterzz.bsky.social", "BLUESKY_PASSWORD": "dqds-j7mq-uebw-ir2t" },
-  { "BLUESKY_USERNAME": "scarletthayesz.bsky.social", "BLUESKY_PASSWORD": "2btw-tq5q-23g3-spnw" },
-  { "BLUESKY_USERNAME": "abigailmoore.bsky.social", "BLUESKY_PASSWORD": "osla-lbq4-spnp-oaip" },
-  { "BLUESKY_USERNAME": "ellataylorzzz.bsky.social", "BLUESKY_PASSWORD": "cog5-t4wc-iqpt-zrx2" },
-  { "BLUESKY_USERNAME": "aaudreyreedw.bsky.social", "BLUESKY_PASSWORD": "q5w7-omnp-whr6-k5mv" },
-  { "BLUESKY_USERNAME": "rubyacollins.bsky.social", "BLUESKY_PASSWORD": "dlxe-66ce-lpjv-gyme" },
-  { "BLUESKY_USERNAME": "lucybennettz.bsky.social", "BLUESKY_PASSWORD": "yg55-4hsl-p53l-oth5" },
-  { "BLUESKY_USERNAME": "hazelparkerz.bsky.social", "BLUESKY_PASSWORD": "oqpf-rx7u-i6i7-3ug7" },
-  { "BLUESKY_USERNAME": "bellastormzz.bsky.social", "BLUESKY_PASSWORD": "mlmw-uqz5-vtr7-zayb" },
-  { "BLUESKY_USERNAME": "daisyknightzz.bsky.social", "BLUESKY_PASSWORD": "tncv-3i7z-hzzc-uadk" },
-  { "BLUESKY_USERNAME": "elizamoonzz.bsky.social", "BLUESKY_PASSWORD": "rx53-mxxf-2osb-uboz" },
-  { "BLUESKY_USERNAME": "fionablackwoodzz.bsky.social", "BLUESKY_PASSWORD": "rjcg-sbp5-4dd4-hr27" },
-  { "BLUESKY_USERNAME": "gemmawildezz.bsky.social", "BLUESKY_PASSWORD": "yijx-s5zh-syij-63in" },
-  { "BLUESKY_USERNAME": "harpersteeleaaa.bsky.social", "BLUESKY_PASSWORD": "oali-lkfh-26oy-fe5h" },
-  { "BLUESKY_USERNAME": "ivyhawkezzz.bsky.social", "BLUESKY_PASSWORD": "gjgw-aglb-xgyr-ns3d" },
-  { "BLUESKY_USERNAME": "jasminebrookszz.bsky.social", "BLUESKY_PASSWORD": "sde5-fpck-qkoi-l5gz" },
-  { "BLUESKY_USERNAME": "karaquinnzzzz.bsky.social", "BLUESKY_PASSWORD": "2nfd-e5ki-nq4g-sibx" },
-  { "BLUESKY_USERNAME": "lylawoodszzz.bsky.social", "BLUESKY_PASSWORD": "gbyz-obdh-ccim-2y7z" },
-  { "BLUESKY_USERNAME": "miavalenzz.bsky.social", "BLUESKY_PASSWORD": "4cq5-j7b4-t5d3-ag7w" },
-  { "BLUESKY_USERNAME": "noragreyzzz.bsky.social", "BLUESKY_PASSWORD": "k53j-gqnw-kcha-zmg3" },
-  { "BLUESKY_USERNAME": "oliviastonezzzzw.bsky.social", "BLUESKY_PASSWORD": "mpsf-cquw-acld-vg54" },
-  { "BLUESKY_USERNAME": "piperthornzz.bsky.social", "BLUESKY_PASSWORD": "45nf-a4of-utv6-q6pv" },
-  { "BLUESKY_USERNAME": "rubyashfordzzz.bsky.social", "BLUESKY_PASSWORD": "v2ww-itrj-bul2-tswm" },
-  { "BLUESKY_USERNAME": "sashahunterzz.bsky.social", "BLUESKY_PASSWORD": "tcxv-3cub-apyk-2l42" }
+  { "BLUESKY_USERNAME": "avacallahan12.bsky.social", "BLUESKY_PASSWORD": "353l-c3fw-4cn7-cwbx" },
+{ "BLUESKY_USERNAME": "marissavanderwood.bsky.social", "BLUESKY_PASSWORD": "r4he-zrwr-udof-iqhr" },
+{ "BLUESKY_USERNAME": "islabennett.bsky.social", "BLUESKY_PASSWORD": "cmdn-cec7-4fek-pgkt" },
+{ "BLUESKY_USERNAME": "felicitymonroe.bsky.social", "BLUESKY_PASSWORD": "yyul-2sry-sr2s-dmdh" },
+{ "BLUESKY_USERNAME": "sabrinakline.bsky.social", "BLUESKY_PASSWORD": "yjab-jgot-kse6-uhtc" },
+{ "BLUESKY_USERNAME": "tessahawthorn.bsky.social", "BLUESKY_PASSWORD": "ce67-c5zs-xnzc-oect" },
+{ "BLUESKY_USERNAME": "emiliacrestwood.bsky.social", "BLUESKY_PASSWORD": "lrqj-f4xp-lsr5-vzpr" },
+{ "BLUESKY_USERNAME": "harpersinclair.bsky.social", "BLUESKY_PASSWORD": "lgp5-46hk-6hgq-gaxt" },
+{ "BLUESKY_USERNAME": "avadonovan123.bsky.social", "BLUESKY_PASSWORD": "u5yv-v6o4-3no7-fkz5" },
+{ "BLUESKY_USERNAME": "lilabradford.bsky.social", "BLUESKY_PASSWORD": "oyaj-5wk5-ow4d-u5ml" },
+{ "BLUESKY_USERNAME": "eliramontane.bsky.social", "BLUESKY_PASSWORD": "vclg-lmrq-ovby-rcsj" },
+{ "BLUESKY_USERNAME": "sariyahvexley.bsky.social", "BLUESKY_PASSWORD": "dvgv-2ucb-oiiy-gtix" },
+{ "BLUESKY_USERNAME": "junessadorell.bsky.social", "BLUESKY_PASSWORD": "lqnb-bj3a-keva-zfns" },
+{ "BLUESKY_USERNAME": "taliahgreaves.bsky.social", "BLUESKY_PASSWORD": "gnis-pfy2-s6qi-4u3w" },
+{ "BLUESKY_USERNAME": "kendravossin.bsky.social", "BLUESKY_PASSWORD": "kdpk-fnjn-grk2-xgmb" },
+{ "BLUESKY_USERNAME": "mylaserrin.bsky.social", "BLUESKY_PASSWORD": "nsfa-xfsb-gvxm-apmv" },
+{ "BLUESKY_USERNAME": "briellethornewood.bsky.social", "BLUESKY_PASSWORD": "mv2l-cqko-3fna-64tt" },
+{ "BLUESKY_USERNAME": "nolanacrey.bsky.social", "BLUESKY_PASSWORD": "r47g-2woq-cutk-lnv2" },
+{ "BLUESKY_USERNAME": "arisellemernan.bsky.social", "BLUESKY_PASSWORD": "2p3j-fkdb-fsqd-axtx" },
+{ "BLUESKY_USERNAME": "zeynahalworth.bsky.social", "BLUESKY_PASSWORD": "3klm-xppl-jjqe-smwr" },
+{ "BLUESKY_USERNAME": "amelioravirelle.bsky.social", "BLUESKY_PASSWORD": "ultz-mwfz-2jsf-7yip" },
+{ "BLUESKY_USERNAME": "calistaramerenne.bsky.social", "BLUESKY_PASSWORD": "bjkp-23a3-uqxl-bja5" },
+{ "BLUESKY_USERNAME": "isolderavelle.bsky.social", "BLUESKY_PASSWORD": "vy4b-wm3r-72rx-gxl2" },
+{ "BLUESKY_USERNAME": "evelindracarysse.bsky.social", "BLUESKY_PASSWORD": "iuxa-c4ov-2ifw-peyv" },
+{ "BLUESKY_USERNAME": "corisandevaltira.bsky.social", "BLUESKY_PASSWORD": "b6sl-n5lg-6mj7-exfy" },
+{ "BLUESKY_USERNAME": "anavielledesmira.bsky.social", "BLUESKY_PASSWORD": "wliv-uj4z-rdsk-ztyc" },
+{ "BLUESKY_USERNAME": "elarinavionelle.bsky.social", "BLUESKY_PASSWORD": "dij6-y2ju-je4p-23z4" },
+{ "BLUESKY_USERNAME": "jessavinemorala.bsky.social", "BLUESKY_PASSWORD": "u4d4-dlvx-iqo6-cfun" },
+{ "BLUESKY_USERNAME": "venessaralurielle.bsky.social", "BLUESKY_PASSWORD": "uehm-vqbo-wn6h-hk4r" },
+{ "BLUESKY_USERNAME": "oriavelledamaris.bsky.social", "BLUESKY_PASSWORD": "k3vt-p6cl-5qfk-vwxz" },
+{ "BLUESKY_USERNAME": "arabellinavexmoor.bsky.social", "BLUESKY_PASSWORD": "qmao-kmj2-evz3-prxw" },
+{ "BLUESKY_USERNAME": "celestivetethoylde.bsky.social", "BLUESKY_PASSWORD": "3ig6-7s6q-2z45-twlq" },
+{ "BLUESKY_USERNAME": "marcythiadeloraine.bsky.social", "BLUESKY_PASSWORD": "gnem-emlx-e6i5-sepq" },
+{ "BLUESKY_USERNAME": "bellamiraquade.bsky.social", "BLUESKY_PASSWORD": "tjnb-epg5-w72i-q364" },
+{ "BLUESKY_USERNAME": "violethraenox.bsky.social", "BLUESKY_PASSWORD": "xvzs-pwuy-w7mb-6fm3" },
+{ "BLUESKY_USERNAME": "serephinawilde.bsky.social", "BLUESKY_PASSWORD": "ava7-pv7u-7xwa-ilyf" },
+{ "BLUESKY_USERNAME": "marcellinedorr.bsky.social", "BLUESKY_PASSWORD": "ezyn-p26z-rjqb-mm5d" },
+{ "BLUESKY_USERNAME": "evandriaskell.bsky.social", "BLUESKY_PASSWORD": "3hhc-u3hx-6a26-wt2t" },
+{ "BLUESKY_USERNAME": "anathemacroix.bsky.social", "BLUESKY_PASSWORD": "xpt5-mu73-46eh-5e5f" },
+{ "BLUESKY_USERNAME": "julessandrafey.bsky.social", "BLUESKY_PASSWORD": "czg7-fnjr-axvm-lyxe" },
+{ "BLUESKY_USERNAME": "catalinawrenley.bsky.social", "BLUESKY_PASSWORD": "lkbt-g7zl-mcja-5tah" },
+{ "BLUESKY_USERNAME": "marcellinefrost.bsky.social", "BLUESKY_PASSWORD": "3bce-ta65-qb7q-s57s" },
+{ "BLUESKY_USERNAME": "viviennerhoslyn.bsky.social", "BLUESKY_PASSWORD": "uucm-e4gx-nnox-kh5f" },
+{ "BLUESKY_USERNAME": "seraphinavance.bsky.social", "BLUESKY_PASSWORD": "tomt-cfio-csup-m64c" },
+{ "BLUESKY_USERNAME": "angeliquestorm.bsky.social", "BLUESKY_PASSWORD": "47tc-f3xf-saw2-vvcs" },
+{ "BLUESKY_USERNAME": "annabellacreed.bsky.social", "BLUESKY_PASSWORD": "l2gh-dpac-pxlj-qiny" }
 ]
