@@ -15,7 +15,7 @@ const db = mysql.createPool({
 });
 
 // Configuration
-const MAX_FOLLOWS = 10000; // Max users to follow was 17000
+const MAX_FOLLOWS = 5000; // Max users to follow was 17000
 const BATCH_SIZE = 20; // Smaller batch size to better handle rate limits
 const BATCH_DELAY = 2000; // Increased delay between batches
 const FOLLOW_DELAY = 1000; // Increased delay between follows
